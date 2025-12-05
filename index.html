@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Curriculum Assessment Toolkit</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f9fbfd; color: #1f2a37; }
+        header { background: linear-gradient(120deg, #004a99, #0077cc); color: #fff; padding: 3rem 2rem; }
+        h1 { margin: 0; font-size: 2.2rem; }
+        p.lead { font-size: 1.1rem; max-width: 720px; }
+        main { padding: 2rem; max-width: 960px; margin: 0 auto; }
+        section { background: #fff; border-radius: 8px; padding: 1.5rem; box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08); margin-bottom: 1.5rem; }
+        a.button { display: inline-block; padding: 0.65rem 1.25rem; border-radius: 6px; background: #0077cc; color: #fff; text-decoration: none; font-weight: 600; }
+        ol { padding-left: 1.5rem; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Curriculum Assessment Toolkit</h1>
+        <p class="lead">This project combines a MySQL schema, a PHP web interface, and Python utilities to manage degrees, courses, objectives, sections, and instructor evaluations with complete CRUD + reporting workflows.</p>
+    </header>
+    <main>
+        <section>
+            <h2>Start the Web App</h2>
+            <p>Launch PHP&apos;s built-in server from the repository root:</p>
+            <pre><code>php -S localhost:8000 app.php</code></pre>
+            <p>Then open the application:</p>
+            <p><a class="button" href="app.php">Open Curriculum Portal</a></p>
+        </section>
+        <section>
+            <h2>Provision the Database</h2>
+            <ol>
+                <li>Edit <code>config.ini</code> with your MySQL credentials.</li>
+                <li>Initialize schema + demo data:<br><code>python main.py --init --seed</code></li>
+                <li>Use <code>programfile.py</code> for scripted reports:<br><code>python programfile.py demo</code></li>
+            </ol>
+        </section>
+        <section>
+            <h2>Project Highlights</h2>
+            <ul>
+                <li>Natural keys + cascading foreign keys, enforced checks, and constraints directly from the ER model.</li>
+                <li>Full CRUD for degrees, courses, instructors, semesters, objectives, and section entry.</li>
+                <li>Guided degree-to-course and course-to-objective workflows with guard rails for core courses.</li>
+                <li>Evaluation cockpit that enforces per-objective tracking, partial/complete states, and duplication across degrees.</li>
+                <li>Built-in reporting widgets plus Python CLI queries for reproducible demos.</li>
+            </ul>
+        </section>
+    </main>
+</body>
+</html>
