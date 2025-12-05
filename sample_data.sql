@@ -25,7 +25,7 @@ INSERT INTO Section (course_no, year, term, section_no, instructor_id, enrolled_
     ('CS201', 2024, 'Spring', '01', 'I002', 35),
     ('DS510', 2024, 'Fall', '01', 'I002', 20),
     ('DS520', 2024, 'Fall', '02', 'I003', 18),
-    ('CS201', 2023, 'Fall', '02', 'I001', 30);
+    ('CS201', 2023, 'Fall', '01', 'I001', 30);
 
 INSERT INTO Objective (code, title, description) VALUES
     ('OBJ1', 'Problem Solving', 'Apply algorithmic thinking to novel problems.'),
