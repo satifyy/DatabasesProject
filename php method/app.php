@@ -4,6 +4,16 @@ declare(strict_types=1);
 require_once __DIR__ . '/db.php';
 session_start();
 
+if (PHP_SAPI === 'cli-server') {
+    $requestPath = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH);
+    if ($requestPath && $requestPath !== '/') {
+        $staticPath = realpath(__DIR__ . $requestPath);
+        if ($staticPath && strncmp($staticPath, __DIR__, strlen(__DIR__)) === 0 && is_file($staticPath)) {
+            return false;
+        }
+    }
+}
+
 $messages = [];
 $errors = [];
 $degreeQueryData = null;
@@ -648,6 +658,7 @@ function evaluation_status_label(array $row): string
 <head>
     <meta charset="UTF-8">
     <title>Curriculum Assessment Portal</title>
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
     <style>
         body { font-family: Arial, sans-serif; margin: 0; background-color: #f8f9fb; }
         header { background: #003366; color: #fff; padding: 1rem 2rem; }

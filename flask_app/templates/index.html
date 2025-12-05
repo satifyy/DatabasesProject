@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Curriculum Assessment Portal</title>
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; background-color: #f8f9fb; }
+        header { background: #003366; color: #fff; padding: 1rem 2rem; }
+        h1 { margin: 0; font-size: 1.75rem; }
+        main { padding: 1.5rem; }
+        section { background: #fff; margin-bottom: 1.5rem; padding: 1rem 1.25rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        h2 { margin-top: 0; border-bottom: 2px solid #eee; padding-bottom: 0.5rem; }
+        form { margin-bottom: 1rem; }
+        label { display: block; margin-bottom: 0.35rem; font-weight: 600; }
+        input[type="text"], input[type="number"], select, textarea { width: 100%; padding: 0.45rem; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        textarea { min-height: 70px; }
+        button { background: #0069d9; color: #fff; border: none; border-radius: 4px; padding: 0.45rem 0.85rem; cursor: pointer; }
+        button.secondary { background: #999; }
+        table { border-collapse: collapse; width: 100%; margin-top: 0.5rem; }
+        th, td { border: 1px solid #ddd; padding: 0.4rem; text-align: left; }
+        th { background: #f0f2f5; }
+        .messages { padding: 0.5rem 1rem; border-radius: 4px; margin-bottom: 1rem; }
+        .messages.success { background: #e1f3e6; color: #155724; }
+        .messages.error { background: #fdecee; color: #8a1c1c; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; }
+        .flex { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+        .status-label { font-weight: 700; }
+    </style>
+</head>
+<body>
+<header>
+    <h1>Curriculum Assessment Portal</h1>
+    <p>Manage master data, assignments, sections, and evaluation workflows.</p>
+</header>
+<main>
+    {% if messages %}
+        <div class="messages success">
+            {% for msg in messages %}
+                <div>{{ msg }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    {% if errors %}
+        <div class="messages error">
+            {% for err in errors %}
+                <div>{{ err }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <section id="master-data">
+        <h2>Phase 2 — Master Data</h2>
+        <p>Use these forms to maintain the reference data that everything else references.</p>
+        <div class="grid">
+            <div>
+                <h3>Degrees</h3>
+                <form method="post">
+                    <input type="hidden" name="action" value="save_degree">
+                    <label>Degree Name
+                        <input type="text" name="degree_name" placeholder="Computer Science" required>
+                    </label>
+                    <label>Level
+                        <input type="text" name="degree_level" placeholder="Bachelors" required>
+                    </label>
+                    <label>Description
+                        <textarea name="degree_description" placeholder="Short summary"></textarea>
+                    </label>
+                    <button type="submit">Save / Update Degree</button>
+                </form>
+                <table>
+                    <tr><th>Name</th><th>Level</th><th>Description</th><th></th></tr>
+                    {% for deg in degrees %}
+                        <tr>
+                            <td>{{ deg.name }}</td>
+                            <td>{{ deg.level }}</td>
+                            <td>{{ deg.description }}</td>
+                            <td>
+                                <form method="post" onsubmit="return confirm('Delete this degree?');">
+                                    <input type="hidden" name="action" value="delete_degree">
+                                    <input type="hidden" name="degree_name" value="{{ deg.name }}">
+                                    <input type="hidden" name="degree_level" value="{{ deg.level }}">
+                                    <button type="submit" class="secondary">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </div>
+            <div>
+                <h3>Courses</h3>
+                <form method="post">
+                    <input type="hidden" name="action" value="save_course">
+                    <label>Course Number
+                        <input type="text" name="course_no" placeholder="CS101" required>
+                    </label>
+                    <label>Title
+                        <input type="text" name="course_title" placeholder="Intro to Programming" required>
+                    </label>
+                    <label>Description
+                        <textarea name="course_description"></textarea>
+                    </label>
+                    <button type="submit">Save / Update Course</button>
+                </form>
+                <table>
+                    <tr><th>Course</th><th>Title</th><th></th></tr>
+                    {% for course in courses %}
+                        <tr>
+                            <td>{{ course.course_no }}</td>
+                            <td>{{ course.title }}</td>
+                            <td>
+                                <form method="post" onsubmit="return confirm('Delete this course?');">
+                                    <input type="hidden" name="action" value="delete_course">
+                                    <input type="hidden" name="course_no" value="{{ course.course_no }}">
+                                    <button type="submit" class="secondary">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </div>
+            <div>
+                <h3>Instructors</h3>
+                <form method="post">
+                    <input type="hidden" name="action" value="save_instructor">
+                    <label>Instructor ID
+                        <input type="text" name="instructor_id" placeholder="I001" required>
+                    </label>
+                    <label>Name
+                        <input type="text" name="instructor_name" placeholder="Dr. Ada Byron" required>
+                    </label>
+                    <button type="submit">Save / Update Instructor</button>
+                </form>
+                <table>
+                    <tr><th>ID</th><th>Name</th><th></th></tr>
+                    {% for inst in instructors %}
+                        <tr>
+                            <td>{{ inst.instructor_id }}</td>
+                            <td>{{ inst.name }}</td>
+                            <td>
+                                <form method="post" onsubmit="return confirm('Delete this instructor?');">
+                                    <input type="hidden" name="action" value="delete_instructor">
+                                    <input type="hidden" name="instructor_id" value="{{ inst.instructor_id }}">
+                                    <button type="submit" class="secondary">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </div>
+            <div>
+                <h3>Semesters</h3>
+                <form method="post">
+                    <input type="hidden" name="action" value="save_semester">
+                    <label>Year
+                        <input type="number" name="semester_year" placeholder="2024" required>
+                    </label>
+                    <label>Term
+                        <select name="semester_term">
+                            {% for term in term_options %}
+                                <option value="{{ term }}">{{ term }}</option>
+                            {% endfor %}
+                        </select>
+                    </label>
+                    <button type="submit">Save / Update Semester</button>
+                </form>
+                <table>
+                    <tr><th>Year</th><th>Term</th><th></th></tr>
+                    {% for sem in semesters %}
+                        <tr>
+                            <td>{{ sem.year }}</td>
+                            <td>{{ sem.term }}</td>
+                            <td>
+                                <form method="post" onsubmit="return confirm('Delete this semester?');">
+                                    <input type="hidden" name="action" value="delete_semester">
+                                    <input type="hidden" name="semester_year" value="{{ sem.year }}">
+                                    <input type="hidden" name="semester_term" value="{{ sem.term }}">
+                                    <button type="submit" class="secondary">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </div>
+            <div>
+                <h3>Objectives</h3>
+                <form method="post">
+                    <input type="hidden" name="action" value="save_objective">
+                    <label>Code
+                        <input type="text" name="objective_code" placeholder="OBJ1" required>
+                    </label>
+                    <label>Title
+                        <input type="text" name="objective_title" placeholder="Problem Solving" required>
+                    </label>
+                    <label>Description
+                        <textarea name="objective_description"></textarea>
+                    </label>
+                    <button type="submit">Save / Update Objective</button>
+                </form>
+                <table>
+                    <tr><th>Code</th><th>Title</th><th></th></tr>
+                    {% for obj in objectives %}
+                        <tr>
+                            <td>{{ obj.code }}</td>
+                            <td>{{ obj.title }}</td>
+                            <td>
+                                <form method="post" onsubmit="return confirm('Delete this objective?');">
+                                    <input type="hidden" name="action" value="delete_objective">
+                                    <input type="hidden" name="objective_code" value="{{ obj.code }}">
+                                    <button type="submit" class="secondary">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <section id="degree-course">
+        <h2>Degree – Course Assignment</h2>
+        <p>Select a degree to view all courses, toggle core status, and remove associations.</p>
+        <form method="post" class="flex">
+            <input type="hidden" name="action" value="set_dc_selection">
+            <label>Degree
+                <select name="degree_key">
+                    {% for deg in degrees %}
+                        {% set key = deg.name ~ '|' ~ deg.level %}
+                        <option value="{{ key }}" {% if dc_selection.name == deg.name and dc_selection.level == deg.level %}selected{% endif %}>
+                            {{ deg.name }} ({{ deg.level }})
+                        </option>
+                    {% endfor %}
+                </select>
+            </label>
+            <button type="submit">Load Courses</button>
+        </form>
+        {% if dc_selection.name %}
+            <table>
+                <tr><th>Course</th><th>Title</th><th>Core?</th><th>Actions</th></tr>
+                {% for row in degree_course_view %}
+                    <tr>
+                        <td>{{ row.course_no }}</td>
+                        <td>{{ row.title }}</td>
+                        <td>
+                            {% if row.linked %}
+                                {{ 'Core' if row.is_core else 'Elective' }}
+                            {% else %}
+                                Not Linked
+                            {% endif %}
+                        </td>
+                        <td>
+                            <form method="post" class="flex">
+                                <input type="hidden" name="action" value="assign_degree_course">
+                                <input type="hidden" name="degree_name" value="{{ dc_selection.name }}">
+                                <input type="hidden" name="degree_level" value="{{ dc_selection.level }}">
+                                <input type="hidden" name="course_no" value="{{ row.course_no }}">
+                                <label><input type="checkbox" name="is_core" value="1" {% if row.linked and row.is_core %}checked{% endif %}> Core</label>
+                                <button type="submit">{{ 'Update' if row.linked else 'Add' }}</button>
+                            </form>
+                            {% if row.linked %}
+                                <form method="post" onsubmit="return confirm('Remove this course from the degree?');">
+                                    <input type="hidden" name="action" value="remove_degree_course">
+                                    <input type="hidden" name="degree_name" value="{{ dc_selection.name }}">
+                                    <input type="hidden" name="degree_level" value="{{ dc_selection.level }}">
+                                    <input type="hidden" name="course_no" value="{{ row.course_no }}">
+                                    <button type="submit" class="secondary">Remove</button>
+                                </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </table>
+        {% endif %}
+    </section>
+
+    <section id="degree-course-objective">
+        <h2>Degree – Course – Objective Assignment</h2>
+        <p>Select a degree, optionally limit to core courses, and manage the objectives tied to each course.</p>
+        <form method="post" class="flex">
+            <input type="hidden" name="action" value="set_dco_selection">
+            <label>Degree
+                <select name="degree_key">
+                    {% for deg in degrees %}
+                        {% set key = deg.name ~ '|' ~ deg.level %}
+                        <option value="{{ key }}" {% if dco_selection.name == deg.name and dco_selection.level == deg.level %}selected{% endif %}>
+                            {{ deg.name }} ({{ deg.level }})
+                        </option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label><input type="checkbox" name="core_only" value="1" {% if dco_selection.core_only %}checked{% endif %}> Core courses only</label>
+            <label>Course
+                <select name="course_no">
+                    {% for course in dco_courses %}
+                        <option value="{{ course.course_no }}" {% if dco_selection.course == course.course_no %}selected{% endif %}>
+                            {{ course.course_no }} {% if course.is_core %}(Core){% endif %}
+                        </option>
+                    {% endfor %}
+                </select>
+            </label>
+            <button type="submit">Filter</button>
+        </form>
+        {% if dco_selection.course %}
+            <div class="grid">
+                <div>
+                    <h3>Add Objective to {{ dco_selection.course }}</h3>
+                    <form method="post">
+                        <input type="hidden" name="action" value="assign_dco">
+                        <input type="hidden" name="degree_name" value="{{ dco_selection.name }}">
+                        <input type="hidden" name="degree_level" value="{{ dco_selection.level }}">
+                        <input type="hidden" name="course_no" value="{{ dco_selection.course }}">
+                        <label>Objective
+                            <select name="objective_code">
+                                {% for obj in objectives %}
+                                    <option value="{{ obj.code }}">{{ obj.code }} – {{ obj.title }}</option>
+                                {% endfor %}
+                            </select>
+                        </label>
+                        <button type="submit">Link Objective</button>
+                    </form>
+                </div>
+                <div>
+                    <h3>Current Objectives</h3>
+                    <table>
+                        <tr><th>Code</th><th>Title</th><th></th></tr>
+                        {% for row in dco_rows %}
+                            <tr>
+                                <td>{{ row.objective_code }}</td>
+                                <td>{{ row.title }}</td>
+                                <td>
+                                    <form method="post" onsubmit="return confirm('Remove this objective from the course?');">
+                                        <input type="hidden" name="action" value="remove_dco">
+                                        <input type="hidden" name="degree_name" value="{{ dco_selection.name }}">
+                                        <input type="hidden" name="degree_level" value="{{ dco_selection.level }}">
+                                        <input type="hidden" name="course_no" value="{{ dco_selection.course }}">
+                                        <input type="hidden" name="objective_code" value="{{ row.objective_code }}">
+                                        <button type="submit" class="secondary">Remove</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </table>
+                </div>
+            </div>
+        {% endif %}
+    </section>
+
+    <section id="section-entry">
+        <h2>Section Entry</h2>
+        <p>Create or update sections by semester with dropdowns only.</p>
+        <form method="post" class="grid">
+            <input type="hidden" name="action" value="add_section">
+            <label>Course
+                <select name="section_course">
+                    {% for course in courses %}
+                        <option value="{{ course.course_no }}">{{ course.course_no }} – {{ course.title }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label>Semester
+                <select name="section_semester">
+                    {% for sem in semesters %}
+                        <option value="{{ sem.year }}|{{ sem.term }}">{{ sem.year }} {{ sem.term }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label>Section Number
+                <input type="text" name="section_no" placeholder="01" required>
+            </label>
+            <label>Instructor
+                <select name="section_instructor">
+                    {% for inst in instructors %}
+                        <option value="{{ inst.instructor_id }}">{{ inst.name }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label>Enrolled Count
+                <input type="number" name="section_enrolled" min="0" value="0">
+            </label>
+            <div style="align-self: end;">
+                <button type="submit">Save Section</button>
+            </div>
+        </form>
+    </section>
+
+    <section id="evaluation">
+        <h2>Phase 3 — Evaluation Workflow</h2>
+        <p>Follow the instructor workflow verbatim: pick degree + semester + instructor, edit rows, and copy evaluations.</p>
+        <form method="post" class="grid">
+            <input type="hidden" name="action" value="set_eval_filter">
+            <label>Degree
+                <select name="degree_key">
+                    {% for deg in degrees %}
+                        {% set key = deg.name ~ '|' ~ deg.level %}
+                        <option value="{{ key }}" {% if eval_filter.degree_name == deg.name and eval_filter.degree_level == deg.level %}selected{% endif %}>
+                            {{ deg.name }} ({{ deg.level }})
+                        </option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label>Semester
+                <select name="year">
+                    {% for sem in semesters %}
+                        <option value="{{ sem.year }}" {% if eval_filter.year == sem.year|string %}selected{% endif %}>{{ sem.year }}</option>
+                    {% endfor %}
+                </select>
+                <select name="term">
+                    {% for term in term_options %}
+                        <option value="{{ term }}" {% if eval_filter.term == term %}selected{% endif %}>{{ term }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label>Instructor
+                <select name="instructor_id">
+                    {% for inst in instructors %}
+                        <option value="{{ inst.instructor_id }}" {% if eval_filter.instructor == inst.instructor_id %}selected{% endif %}>{{ inst.name }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <div style="align-self: end;">
+                <button type="submit">Load Sections</button>
+            </div>
+        </form>
+        {% if evaluation_rows %}
+            <table>
+                <tr>
+                    <th>Section</th><th>Objective</th><th>Status</th><th colspan="2">Evaluation Entry</th><th>Improvement</th><th>Copy To</th>
+                </tr>
+                {% for row in evaluation_rows %}
+                    <tr>
+                        <td>
+                            {{ row.course_no }}-{{ row.section_no }}<br>
+                            {{ row.year }} {{ row.term }}<br>
+                            <small>{{ row.title }} (enrolled {{ row.enrolled_count }})</small>
+                        </td>
+                        <td>{{ row.objective_code }} – {{ row.objective_title }}</td>
+                        <td class="status-label">{{ row.status }}</td>
+                        <td colspan="2">
+                            <form method="post" class="grid">
+                                <input type="hidden" name="action" value="save_evaluation">
+                                <input type="hidden" name="course_no" value="{{ row.course_no }}">
+                                <input type="hidden" name="section_no" value="{{ row.section_no }}">
+                                <input type="hidden" name="year" value="{{ row.year }}">
+                                <input type="hidden" name="term" value="{{ row.term }}">
+                                <input type="hidden" name="degree_name" value="{{ eval_filter.degree_name }}">
+                                <input type="hidden" name="degree_level" value="{{ eval_filter.degree_level }}">
+                                <input type="hidden" name="objective_code" value="{{ row.objective_code }}">
+                                <label>Method
+                                    <input type="text" name="method_label" value="{{ row.method_label or '' }}" placeholder="Exam">
+                                </label>
+                                <label>A Count
+                                    <input type="number" name="a_count" min="0" value="{{ row.a_count if row.a_count is not none else '' }}">
+                                </label>
+                                <label>B Count
+                                    <input type="number" name="b_count" min="0" value="{{ row.b_count if row.b_count is not none else '' }}">
+                                </label>
+                                <label>C Count
+                                    <input type="number" name="c_count" min="0" value="{{ row.c_count if row.c_count is not none else '' }}">
+                                </label>
+                                <label>F Count
+                                    <input type="number" name="f_count" min="0" value="{{ row.f_count if row.f_count is not none else '' }}">
+                                </label>
+                                <label>Improvement Notes
+                                    <textarea name="improvement_text">{{ row.improvement_text or '' }}</textarea>
+                                </label>
+                                <div style="align-self: end;">
+                                    <button type="submit">Save Row</button>
+                                </div>
+                            </form>
+                        </td>
+                        <td>{{ 'Yes' if row.improvement_text else 'No' }}</td>
+                        <td>
+                            {% if row.other_degrees %}
+                                <form method="post">
+                                    <input type="hidden" name="action" value="copy_evaluation">
+                                    <input type="hidden" name="course_no" value="{{ row.course_no }}">
+                                    <input type="hidden" name="section_no" value="{{ row.section_no }}">
+                                    <input type="hidden" name="year" value="{{ row.year }}">
+                                    <input type="hidden" name="term" value="{{ row.term }}">
+                                    <input type="hidden" name="degree_name" value="{{ eval_filter.degree_name }}">
+                                    <input type="hidden" name="degree_level" value="{{ eval_filter.degree_level }}">
+                                    <input type="hidden" name="objective_code" value="{{ row.objective_code }}">
+                                    <label>Destination
+                                        <select name="target_degree">
+                                            {% for deg in row.other_degrees %}
+                                                {% set key = deg.name ~ '|' ~ deg.level %}
+                                                <option value="{{ key }}">{{ deg.name }} ({{ deg.level }})</option>
+                                            {% endfor %}
+                                        </select>
+                                    </label>
+                                    <button type="submit">Copy</button>
+                                </form>
+                            {% else %}
+                                <em>No compatible degrees.</em>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </table>
+        {% else %}
+            <p>No sections match the chosen filters.</p>
+        {% endif %}
+    </section>
+
+    <section id="queries">
+        <h2>Phase 4 — Required Queries</h2>
+        <div class="grid">
+            <div>
+                <h3>Degree Snapshot</h3>
+                <form method="post">
+                    <input type="hidden" name="action" value="run_degree_query">
+                    <label>Degree
+                        <select name="dq_name">
+                            {% for deg in degrees %}
+                                <option value="{{ deg.name }}" {% if degree_query_filters.get('name') == deg.name %}selected{% endif %}>{{ deg.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </label>
+                    <label>Level
+                        <select name="dq_level">
+                            {% for deg in degrees %}
+                                <option value="{{ deg.level }}" {% if degree_query_filters.get('level') == deg.level %}selected{% endif %}>{{ deg.level }}</option>
+                            {% endfor %}
+                        </select>
+                    </label>
+                    <label>Start Semester (e.g., 2023-Fall)
+                        <input type="text" name="dq_start" value="{{ degree_query_filters.get('start', '2023-Fall') }}">
+                    </label>
+                    <label>End Semester
+                        <input type="text" name="dq_end" value="{{ degree_query_filters.get('end', '2024-Fall') }}">
+                    </label>
+                    <label>Objectives (hold Ctrl/Cmd for multi-select)
+                        <select name="dq_objectives[]" multiple size="4">
+                            {% for obj in objectives %}
+                                <option value="{{ obj.code }}" {% if obj.code in degree_query_filters.get('objectives', []) %}selected{% endif %}>{{ obj.code }} – {{ obj.title }}</option>
+                            {% endfor %}
+                        </select>
+                    </label>
+                    <button type="submit">Run Degree Query</button>
+                </form>
+                {% if degree_query_data %}
+                    <h4>Courses</h4>
+                    <ul>
+                        {% for course in degree_query_data.courses %}
+                            <li>{{ course.course_no }} – {{ course.title }} ({{ 'Core' if course.is_core else 'Elective' }})</li>
+                        {% endfor %}
+                    </ul>
+                    <h4>Objectives</h4>
+                    <ul>
+                        {% for obj in degree_query_data.objectives %}
+                            <li>{{ obj.code }}: {{ obj.title }}</li>
+                        {% endfor %}
+                    </ul>
+                    <h4>Sections in Range</h4>
+                    <ul>
+                        {% for sec in degree_query_data.sections %}
+                            {% if semester_in_range(sec.year|int, sec.term, degree_query_filters.get('start', '1900-Spring'), degree_query_filters.get('end', '2999-Fall')) %}
+                                <li>{{ sec.year }} {{ sec.term }} {{ sec.course_no }}-{{ sec.section_no }}</li>
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                    {% if degree_query_data.objective_courses %}
+                        <h4>Courses by Selected Objectives</h4>
+                        <ul>
+                            {% for row in degree_query_data.objective_courses %}
+                                <li>{{ row.course_no }} &lt;= {{ row.objective_code }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                {% endif %}
+            </div>
+            <div>
+                <h3>Course Sections</h3>
+                <form method="post">
+                    <input type="hidden" name="action" value="run_course_query">
+                    <label>Course
+                        <select name="cq_course">
+                            {% for course in courses %}
+                                <option value="{{ course.course_no }}" {% if course_query_filters.get('course') == course.course_no %}selected{% endif %}>{{ course.course_no }}</option>
+                            {% endfor %}
+                        </select>
+                    </label>
+                    <label>Start Semester
+                        <input type="text" name="cq_start" value="{{ course_query_filters.get('start', '2023-Fall') }}">
+                    </label>
+                    <label>End Semester
+                        <input type="text" name="cq_end" value="{{ course_query_filters.get('end', '2024-Fall') }}">
+                    </label>
+                    <button type="submit">List Sections</button>
+                </form>
+                {% if course_query_data %}
+                    <ul>
+                        {% for row in course_query_data.rows %}
+                            {% if semester_in_range(row.year|int, row.term, course_query_filters.get('start', '1900-Spring'), course_query_filters.get('end', '2999-Fall')) %}
+                                <li>{{ row.year }} {{ row.term }} section {{ row.section_no }} instructor {{ row.instructor_id }}</li>
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+            <div>
+                <h3>Instructor Sections</h3>
+                <form method="post">
+                    <input type="hidden" name="action" value="run_instructor_query">
+                    <label>Instructor
+                        <select name="iq_instructor">
+                            {% for inst in instructors %}
+                                <option value="{{ inst.instructor_id }}" {% if instructor_query_filters.get('instructor') == inst.instructor_id %}selected{% endif %}>{{ inst.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </label>
+                    <label>Start Semester
+                        <input type="text" name="iq_start" value="{{ instructor_query_filters.get('start', '2023-Fall') }}">
+                    </label>
+                    <label>End Semester
+                        <input type="text" name="iq_end" value="{{ instructor_query_filters.get('end', '2024-Fall') }}">
+                    </label>
+                    <button type="submit">List Sections</button>
+                </form>
+                {% if instructor_query_data %}
+                    <ul>
+                        {% for row in instructor_query_data.rows %}
+                            {% if semester_in_range(row.year|int, row.term, instructor_query_filters.get('start', '1900-Spring'), instructor_query_filters.get('end', '2999-Fall')) %}
+                                <li>{{ row.year }} {{ row.term }} {{ row.course_no }}-{{ row.section_no }}</li>
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+            <div>
+                <h3>Evaluation Status by Semester</h3>
+                <form method="post">
+                    <input type="hidden" name="action" value="run_eval_status">
+                    <label>Year
+                        <input type="number" name="es_year" value="{{ eval_status_filters.get('year', '2024') }}">
+                    </label>
+                    <label>Term
+                        <select name="es_term">
+                            {% for term in term_options %}
+                                <option value="{{ term }}" {% if eval_status_filters.get('term') == term %}selected{% endif %}>{{ term }}</option>
+                            {% endfor %}
+                        </select>
+                    </label>
+                    <button type="submit">Summarize</button>
+                </form>
+                {% if eval_status_data %}
+                    <ul>
+                        {% for row in eval_status_data.rows %}
+                            {% set status = 'No Evaluation' %}
+                            {% if row.total_rows|int == 0 %}
+                                {% set status = 'No Evaluation' %}
+                            {% elif row.partial_rows|int > 0 %}
+                                {% set status = 'Partial' %}
+                            {% elif row.complete_rows|int == row.total_rows|int %}
+                                {% set status = 'Complete' %}
+                            {% else %}
+                                {% set status = 'Partial' %}
+                            {% endif %}
+                            {% set improve = 'Yes' if row.improved_rows|int > 0 else 'No' %}
+                            <li>{{ row.course_no }}-{{ row.section_no }}: {{ status }} (Improvement: {{ improve }})</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+            <div>
+                <h3>Percent Non-F Query</h3>
+                <form method="post">
+                    <input type="hidden" name="action" value="run_nonf">
+                    <label>Year
+                        <input type="number" name="nf_year" value="{{ nonf_filters.get('year', '2024') }}">
+                    </label>
+                    <label>Term
+                        <select name="nf_term">
+                            {% for term in term_options %}
+                                <option value="{{ term }}" {% if nonf_filters.get('term') == term %}selected{% endif %}>{{ term }}</option>
+                            {% endfor %}
+                        </select>
+                    </label>
+                    <label>Threshold (0-1)
+                        <input type="number" step="0.01" name="nf_threshold" value="{{ nonf_filters.get('threshold', '0.8') }}">
+                    </label>
+                    <button type="submit">Filter Sections</button>
+                </form>
+                {% if nonf_data %}
+                    <ul>
+                        {% for row in nonf_data.rows %}
+                            {% set pct = (row.nonf / row.total)|round(3) if row.total else 0 %}
+                            <li>{{ row.course_no }}-{{ row.section_no }}: {{ row.nonf }}/{{ row.total }} ({{ pct }})</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+</main>
+</body>
+</html>
