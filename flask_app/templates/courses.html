@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Manage Courses · Curriculum Assessment{% endblock %}
+{% block content %}
+<div class="card">
+    <h2>Courses</h2>
+    <div class="flex">
+        <div>
+            <h3>Create / Update Course</h3>
+            <form method="post">
+                <input type="hidden" name="action" value="create_course">
+                <label>Course Number
+                    <input type="text" name="course_no" placeholder="CS101" required>
+                </label>
+                <label>Title
+                    <input type="text" name="course_title" placeholder="Intro to Programming" required>
+                </label>
+                <label>Description
+                    <textarea name="course_description" placeholder="Optional catalog description"></textarea>
+                </label>
+                <button type="submit">Save Course</button>
+            </form>
+        </div>
+        <div>
+            <h3>Catalog</h3>
+            <table>
+                <tr><th>Course</th><th>Title</th><th></th></tr>
+                {% for course in courses %}
+                    <tr>
+                        <td>{{ course.course_no }}</td>
+                        <td>{{ course.title }}</td>
+                        <td>
+                            <form method="post" onsubmit="return confirm('Delete this course?');">
+                                <input type="hidden" name="action" value="delete_course">
+                                <input type="hidden" name="course_no" value="{{ course.course_no }}">
+                                <button type="submit" class="secondary">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h2>Instructors</h2>
+    <div class="flex">
+        <div>
+            <h3>Add Instructor</h3>
+            <form method="post">
+                <input type="hidden" name="action" value="create_instructor">
+                <label>Instructor ID
+                    <input type="text" name="instructor_id" placeholder="I001" required>
+                </label>
+                <label>Name
+                    <input type="text" name="instructor_name" placeholder="Dr. Ada Byron" required>
+                </label>
+                <button type="submit">Save Instructor</button>
+            </form>
+        </div>
+        <div>
+            <h3>Faculty Directory</h3>
+            <table>
+                <tr><th>ID</th><th>Name</th><th></th></tr>
+                {% for inst in instructors %}
+                    <tr>
+                        <td>{{ inst.instructor_id }}</td>
+                        <td>{{ inst.name }}</td>
+                        <td>
+                            <form method="post" onsubmit="return confirm('Delete this instructor?');">
+                                <input type="hidden" name="action" value="delete_instructor">
+                                <input type="hidden" name="instructor_id" value="{{ inst.instructor_id }}">
+                                <button type="submit" class="secondary">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

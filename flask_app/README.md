@@ -46,7 +46,15 @@ If you prefer Workbench, open each `.sql` file there and execute it.
    cd flask_app
    cp config.ini.example config.ini
    ```
-2. Update `config.ini` so the `[database]` values match the credentials you created (`host`, `port`, `user`, `password`, `database`).
+2. Update `config.ini` so the `[database]` values match the credentials you created (`host`, `port`, `user`, `password`, `database`). The template already shows the required keys:
+   ```ini
+   [database]
+   host = localhost
+   port = 3306
+   user = cs_user
+   password = cs_pass
+   database = curriculum_tracker
+   ```
 
 ## 5. Install Python Dependencies
 
@@ -73,15 +81,37 @@ This installs Flask, PyMySQL, and python-dotenv.
 
 ## 7. Using the Portal
 
-- **Master Data**: Enter degrees, courses, instructors, semesters, and objectives using the forms on the landing page. Each form saves records directly to MySQL.
-- **Degree ↔ Course / Objectives**: Select an existing degree to assign courses, mark them core/elective, and attach objectives.
-- **Section Entry**: Pick a course, semester, section number, instructor, and enrollment count to create sections.
-- **Evaluation Workflow**: Choose degree + semester + instructor to load all required rows, then enter assessment data (method, counts, improvements). Use the “Copy evaluation” action to duplicate work across degrees.
-- **Reports**: Use the Degree/Course/Instructor queries, Evaluation Status, and Non-F% reports at the bottom to inspect data and verify completeness.
+The app is organized into focused pages so new users can follow the exact workflow from the project spec:
 
-All form submissions happen on the same page, so after you save a record, scroll to confirm the success or error message. If something fails (e.g., missing required fields or constraint violations), the red error card at the top explains what to fix.
+1. **Manage Degrees** – create BA/BS/MS/Ph.D./Cert programs, attach catalog courses, mark core requirements, and map objectives per course.
+2. **Manage Courses** – maintain the course catalog and instructor directory.
+3. **Manage Objectives** – define learning objectives (120-char titles with unique constraint).
+4. **Manage Semesters & Sections** – add semesters, then create sections with 3-digit section numbers, instructor assignments, and enrollment counts.
+5. **Associate Courses with Objectives** – link any course to the objectives it supports (independent of degree logic).
+6. **Enter/Review Evaluations** – pick a degree, semester, and instructor to see each section’s required objectives, enter assessment data, and view the “X / Y evaluated (Z%)” summary plus missing codes.
+7. **Run Queries / Reports** – execute the required SQL-driven reports:
+   - degree-specific course/objective/section listings,
+   - degree objective → courses lookup,
+   - course and instructor history within a semester range,
+   - evaluation status per semester,
+   - non-F percentage filter for a semester.
 
-## 8. Troubleshooting
+Each form posts to its own page and immediately flashes success/error messages at the top. Once you configure master data, move left-to-right through the navigation for a predictable workflow.
+
+## 8. Schema Overview
+
+- **Degree** – BA/BS/MS/Ph.D./Cert programs identified by (name, level) with a `CHECK (level IN ('BA','BS','MS','Ph.D.','Cert'))`.
+- **Course** – reusable catalog courses (`course_no`, `title`) that can appear in multiple degrees.
+- **Instructor** – faculty directory keyed by `instructor_id`.
+- **Semester** – valid `(year, term)` pairs (`term` limited to Spring/Summer/Fall).
+- **Section** – individual offerings with `(course_no, year, term, section_no)` primary key, 3-digit `section_no` check, instructor, and enrollment count.
+- **Objective** – learning objectives keyed by `code`, 120-character unique `title`.
+- **CourseObjective** – general association between a course and the objectives it supports.
+- **DegreeCourse** – join table between Degree and Course, with an `is_core` flag.
+- **DegreeCourseObjective** – objectives required for a given degree + course.
+- **Evaluation** – assessment rows per section/degree/objective pairing; stores method label, A/B/C/F counts, and improvement text.
+
+## 9. Troubleshooting
 
 - **Cannot connect to database**: Verify `config.ini` credentials, confirm MySQL is running, and ensure the `curriculum_tracker` schema exists.
 - **Missing tables**: Re-run `schema.sql` and restart the Flask server.

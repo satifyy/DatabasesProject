@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Course ↔ Objective Links · Curriculum Assessment{% endblock %}
+{% block content %}
+<div class="card">
+    <h2>Associate Courses with Objectives</h2>
+    <form method="get" class="flex" style="align-items:flex-end;">
+        <div>
+            <label>Select Course</label>
+            <select name="course">
+                {% for course in courses %}
+                    <option value="{{ course.course_no }}" {% if selected_course == course.course_no %}selected{% endif %}>{{ course.course_no }} – {{ course.title }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <button type="submit">Change Course</button>
+        </div>
+    </form>
+
+    {% if selected_course %}
+        <div class="flex">
+            <div>
+                <h3>Add Objective</h3>
+                {% if available %}
+                    <form method="post">
+                        <input type="hidden" name="action" value="add_course_objective">
+                        <input type="hidden" name="course_no" value="{{ selected_course }}">
+                        <input type="hidden" name="selected_course" value="{{ selected_course }}">
+                        <label>Objective
+                            <select name="objective_code">
+                                {% for obj in available %}
+                                    <option value="{{ obj.code }}">{{ obj.code }} – {{ obj.title }}</option>
+                                {% endfor %}
+                            </select>
+                        </label>
+                        <button type="submit">Link Objective</button>
+                    </form>
+                {% else %}
+                    <p class="summary">All objectives are already linked to this course.</p>
+                {% endif %}
+            </div>
+            <div>
+                <h3>Objectives for {{ selected_course }}</h3>
+                <table>
+                    <tr><th>Code</th><th>Title</th><th></th></tr>
+                    {% for row in assigned %}
+                        <tr>
+                            <td>{{ row.code }}</td>
+                            <td>{{ row.title }}</td>
+                            <td>
+                                <form method="post" onsubmit="return confirm('Remove this objective from the course?');">
+                                    <input type="hidden" name="action" value="remove_course_objective">
+                                    <input type="hidden" name="course_no" value="{{ selected_course }}">
+                                    <input type="hidden" name="objective_code" value="{{ row.code }}">
+                                    <input type="hidden" name="selected_course" value="{{ selected_course }}">
+                                    <button type="submit" class="secondary">Remove</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+    {% else %}
+        <p class="summary">Add a course to get started.</p>
+    {% endif %}
+</div>
+{% endblock %}

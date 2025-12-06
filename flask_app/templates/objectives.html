@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Manage Objectives · Curriculum Assessment{% endblock %}
+{% block content %}
+<div class="card">
+    <h2>Objectives</h2>
+    <div class="flex">
+        <div>
+            <h3>Create / Update Objective</h3>
+            <form method="post">
+                <input type="hidden" name="action" value="create_objective">
+                <label>Code
+                    <input type="text" name="objective_code" placeholder="OBJ-001" required>
+                </label>
+                <label>Title
+                    <input type="text" name="objective_title" placeholder="Problem Solving" required>
+                </label>
+                <label>Description
+                    <textarea name="objective_description" placeholder="Optional details"></textarea>
+                </label>
+                <button type="submit">Save Objective</button>
+            </form>
+        </div>
+        <div>
+            <h3>Objective Catalog</h3>
+            <table>
+                <tr><th>Code</th><th>Title</th><th>Description</th><th></th></tr>
+                {% for obj in objectives %}
+                    <tr>
+                        <td>{{ obj.code }}</td>
+                        <td>{{ obj.title }}</td>
+                        <td>{{ obj.description }}</td>
+                        <td>
+                            <form method="post" onsubmit="return confirm('Delete this objective?');">
+                                <input type="hidden" name="action" value="delete_objective">
+                                <input type="hidden" name="objective_code" value="{{ obj.code }}">
+                                <button type="submit" class="secondary">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

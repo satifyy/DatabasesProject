@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %}Enter & Review Evaluations · Curriculum Assessment{% endblock %}
+{% block content %}
+<div class="card">
+    <h2>Filter Sections</h2>
+    <form method="get" class="flex" style="align-items:flex-end;">
+        <div>
+            <label>Degree</label>
+            <select name="degree">
+                {% for deg in degrees %}
+                    {% set key = deg.name ~ '|' ~ deg.level %}
+                    <option value="{{ key }}" {% if filter_state.degree_key == key %}selected{% endif %}>{{ deg.name }} ({{ deg.level }})</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label>Semester Year</label>
+            <input type="number" name="year" value="{{ filter_state.year }}" required>
+        </div>
+        <div>
+            <label>Semester Term</label>
+            <select name="term">
+                {% for term in term_options %}
+                    <option value="{{ term }}" {% if filter_state.term == term %}selected{% endif %}>{{ term }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label>Instructor</label>
+            <select name="instructor_id">
+                {% for inst in instructors %}
+                    <option value="{{ inst.instructor_id }}" {% if filter_state.instructor_id == inst.instructor_id %}selected{% endif %}>{{ inst.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <button type="submit">Load Sections</button>
+        </div>
+    </form>
+</div>
+
+{% if sections %}
+    {% for section in sections %}
+        <div class="card">
+            <h3>{{ section.course_no }} – {{ section.title }} (Section {{ section.section_no }})</h3>
+            <p class="summary">
+                {{ section.term }} {{ section.year }} · {{ section.instructor_name }} · Enrollment {{ section.enrolled_count }}<br>
+                {{ section.eval_obj }} / {{ section.total_obj }} objectives evaluated ({{ '%.0f'|format(section.percent) }}%)
+                {% if section.missing %}
+                    – missing: {% for obj in section.missing %}<span class="tag">{{ obj.code }}</span>{% endfor %}
+                {% else %}
+                    – all objectives evaluated
+                {% endif %}
+            </p>
+            <table>
+                <tr>
+                    <th>Objective</th>
+                    <th>Evaluation Entry</th>
+                    <th>Status</th>
+                </tr>
+                {% for row in section.rows %}
+                    <tr>
+                        <td>{{ row.objective_code }} – {{ row.objective_title }}</td>
+                        <td>
+                            <form method="post" class="flex" style="gap:0.4rem; align-items:flex-end;">
+                                <input type="hidden" name="action" value="save_evaluation">
+                                <input type="hidden" name="degree_name" value="{{ filter_state.degree_name }}">
+                                <input type="hidden" name="degree_level" value="{{ filter_state.degree_level }}">
+                                <input type="hidden" name="course_no" value="{{ section.course_no }}">
+                                <input type="hidden" name="section_no" value="{{ section.section_no }}">
+                                <input type="hidden" name="year" value="{{ section.year }}">
+                                <input type="hidden" name="term" value="{{ section.term }}">
+                                <input type="hidden" name="objective_code" value="{{ row.objective_code }}">
+                                <input type="hidden" name="filter_degree_name" value="{{ filter_state.degree_name }}">
+                                <input type="hidden" name="filter_degree_level" value="{{ filter_state.degree_level }}">
+                                <input type="hidden" name="filter_year" value="{{ filter_state.year }}">
+                                <input type="hidden" name="filter_term" value="{{ filter_state.term }}">
+                                <input type="hidden" name="filter_instructor" value="{{ filter_state.instructor_id }}">
+                                <div>
+                                    <label style="font-size:0.8rem;">Method</label>
+                                    <input type="text" name="method_label" value="{{ row.method_label }}" placeholder="Method" style="width:150px;">
+                                </div>
+                                <div>
+                                    <label style="font-size:0.8rem;">A</label>
+                                    <input type="number" name="a_count" value="{{ row.a_count }}" min="0" placeholder="0" style="width:60px;">
+                                </div>
+                                <div>
+                                    <label style="font-size:0.8rem;">B</label>
+                                    <input type="number" name="b_count" value="{{ row.b_count }}" min="0" placeholder="0" style="width:60px;">
+                                </div>
+                                <div>
+                                    <label style="font-size:0.8rem;">C</label>
+                                    <input type="number" name="c_count" value="{{ row.c_count }}" min="0" placeholder="0" style="width:60px;">
+                                </div>
+                                <div>
+                                    <label style="font-size:0.8rem;">F</label>
+                                    <input type="number" name="f_count" value="{{ row.f_count }}" min="0" placeholder="0" style="width:60px;">
+                                </div>
+                                <div style="flex:1 1 200px;">
+                                    <label style="font-size:0.8rem;">Improvement</label>
+                                    <textarea name="improvement_text" placeholder="Improvements" style="width:100%; min-height:40px;">{{ row.improvement_text }}</textarea>
+                                </div>
+                                <button type="submit">Save</button>
+                            </form>
+                        </td>
+                        <td class="{% if row.status == 'Complete' %}status-complete{% elif row.status == 'No Evaluation' %}status-none{% else %}status-partial{% endif %}">{{ row.status }}</td>
+                    </tr>
+                {% endfor %}
+            </table>
+        </div>
+    {% endfor %}
+{% else %}
+    <div class="card">
+        <p class="summary">Select a degree, semester, and instructor to load evaluation rows.</p>
+    </div>
+{% endif %}
+{% endblock %}

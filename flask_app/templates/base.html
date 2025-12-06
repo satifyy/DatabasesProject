@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>{% block title %}Curriculum Assessment{% endblock %}</title>
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+    <style>
+        :root {
+            --primary: #004080;
+            --accent: #2a7ae2;
+            --bg: #f4f6fb;
+            --card: #ffffff;
+            --text: #1f2a44;
+        }
+        * { box-sizing: border-box; }
+        body { font-family: "Segoe UI", Arial, sans-serif; margin: 0; background: var(--bg); color: var(--text); }
+        header { background: var(--primary); color: #fff; padding: 1rem 2rem; }
+        header h1 { margin: 0; font-size: 1.75rem; }
+        nav { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.75rem; }
+        nav a { color: #fff; text-decoration: none; padding: 0.35rem 0.75rem; border-radius: 999px; border: 1px solid rgba(255,255,255,0.35); font-size: 0.95rem; }
+        nav a.active { background: #fff; color: var(--primary); }
+        main { padding: 1.5rem; max-width: 1200px; margin: 0 auto; }
+        .card { background: var(--card); border-radius: 10px; padding: 1.25rem; margin-bottom: 1.5rem; box-shadow: 0 6px 20px rgba(12, 31, 80, 0.08); }
+        h2 { margin-top: 0; font-size: 1.4rem; }
+        h3 { margin-top: 1.5rem; font-size: 1.1rem; }
+        form { margin-bottom: 1rem; }
+        label { display: block; margin-bottom: 0.35rem; font-weight: 600; }
+        input[type="text"], input[type="number"], select, textarea { width: 100%; padding: 0.55rem; border: 1px solid #ccd6eb; border-radius: 6px; margin-bottom: 0.75rem; font-size: 0.95rem; }
+        textarea { min-height: 80px; }
+        button { background: var(--accent); color: #fff; border: none; border-radius: 6px; padding: 0.45rem 0.9rem; cursor: pointer; font-weight: 600; }
+        button.secondary { background: #8895b3; }
+        table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; font-size: 0.93rem; }
+        th, td { border: 1px solid #e1e5f2; padding: 0.45rem; text-align: left; }
+        th { background: #eef2fb; font-weight: 600; }
+        .messages { border-radius: 8px; padding: 0.85rem 1rem; margin-bottom: 1rem; }
+        .messages.success { background: #e9f7ef; color: #0f6848; }
+        .messages.error { background: #fdecea; color: #a03c3c; }
+        .flex { display: flex; flex-wrap: wrap; gap: 1rem; }
+        .flex > * { flex: 1 1 280px; }
+        .summary { font-size: 0.95rem; color: #37446b; }
+        .tag { display: inline-block; padding: 0.2rem 0.5rem; border-radius: 999px; font-size: 0.8rem; background: #e6eefc; color: #1f3f7f; margin-right: 0.35rem; }
+        .status-complete { color: #0a8f4d; font-weight: 600; }
+        .status-partial { color: #d08300; font-weight: 600; }
+        .status-none { color: #a03c3c; font-weight: 600; }
+    </style>
+</head>
+<body>
+<header>
+    <h1>Curriculum Assessment Portal</h1>
+    <nav>
+        {% for item in nav_links %}
+            <a href="{{ url_for(item.endpoint) }}" class="{{ 'active' if request.endpoint == item.endpoint else '' }}">{{ item.label }}</a>
+        {% endfor %}
+    </nav>
+</header>
+<main>
+    {% with messages = get_flashed_messages(with_categories=True) %}
+        {% if messages %}
+            {% for category, msg in messages %}
+                <div class="messages {{ category }}">{{ msg }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+</main>
+</body>
+</html>

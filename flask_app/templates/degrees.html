@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+{% block title %}Manage Degrees · Curriculum Assessment{% endblock %}
+{% block content %}
+<div class="card">
+    <h2>Degrees</h2>
+    <div class="flex">
+        <div>
+            <h3>Create / Update Degree</h3>
+            <form method="post">
+                <input type="hidden" name="action" value="create_degree">
+                <label>Name
+                    <input type="text" name="degree_name" placeholder="Computer Science" required>
+                </label>
+                <label>Level
+                    <select name="degree_level" required>
+                        <option value="" disabled selected>Select level</option>
+                        {% for level in level_options %}
+                            <option value="{{ level }}">{{ level }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+                <label>Description
+                    <textarea name="degree_description" placeholder="Short summary of the program"></textarea>
+                </label>
+                <button type="submit">Save Degree</button>
+            </form>
+        </div>
+        <div>
+            <h3>Existing Degrees</h3>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Level</th>
+                    <th>Description</th>
+                    <th></th>
+                </tr>
+                {% for deg in degrees %}
+                    <tr>
+                        <td>{{ deg.name }}</td>
+                        <td>{{ deg.level }}</td>
+                        <td>{{ deg.description }}</td>
+                        <td>
+                            <form method="post" onsubmit="return confirm('Delete this degree?');">
+                                <input type="hidden" name="action" value="delete_degree">
+                                <input type="hidden" name="degree_name" value="{{ deg.name }}">
+                                <input type="hidden" name="degree_level" value="{{ deg.level }}">
+                                <button type="submit" class="secondary">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h2>Degree Courses</h2>
+    <form method="get" class="flex" style="align-items:flex-end;">
+        <div>
+            <label>Select degree to manage</label>
+            <select name="degree">
+                {% for deg in degrees %}
+                    {% set key = deg.name ~ '|' ~ deg.level %}
+                    <option value="{{ key }}" {% if key == degree_key %}selected{% endif %}>{{ deg.name }} ({{ deg.level }})</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            {% if course_key %}
+                <input type="hidden" name="course" value="{{ course_key }}">
+            {% endif %}
+            <button type="submit">Change Degree</button>
+        </div>
+    </form>
+    {% if selected_degree %}
+        <div class="flex">
+            <div>
+                <h3>Assign Course</h3>
+                <form method="post">
+                    <input type="hidden" name="action" value="add_degree_course">
+                    <input type="hidden" name="degree_name" value="{{ selected_degree[0] }}">
+                    <input type="hidden" name="degree_level" value="{{ selected_degree[1] }}">
+                    <input type="hidden" name="next_degree" value="{{ degree_key }}">
+                    <label>Course
+                        <select name="course_no">
+                            {% for course in courses %}
+                                <option value="{{ course.course_no }}">{{ course.course_no }} – {{ course.title }}</option>
+                            {% endfor %}
+                        </select>
+                    </label>
+                    <label>
+                        <input type="checkbox" name="is_core" value="1"> Core requirement
+                    </label>
+                    <button type="submit">Save Course</button>
+                </form>
+            </div>
+            <div>
+                <h3>Courses for {{ selected_degree[0] }} ({{ selected_degree[1] }})</h3>
+                <table>
+                    <tr>
+                        <th>Course</th>
+                        <th>Title</th>
+                        <th>Core?</th>
+                        <th></th>
+                    </tr>
+                    {% for row in degree_courses %}
+                        <tr>
+                            <td>{{ row.course_no }}</td>
+                            <td>{{ row.title }}</td>
+                            <td>{{ 'Yes' if row.is_core else 'No' }}</td>
+                            <td>
+                                <form method="post" onsubmit="return confirm('Remove this course from the degree?');">
+                                    <input type="hidden" name="action" value="remove_degree_course">
+                                    <input type="hidden" name="degree_name" value="{{ selected_degree[0] }}">
+                                    <input type="hidden" name="degree_level" value="{{ selected_degree[1] }}">
+                                    <input type="hidden" name="course_no" value="{{ row.course_no }}">
+                                    <input type="hidden" name="next_degree" value="{{ degree_key }}">
+                                    <button type="submit" class="secondary">Remove</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h2>Degree → Course Objectives</h2>
+    {% if selected_degree %}
+        <form method="get" class="flex" style="align-items:flex-end;">
+            <input type="hidden" name="degree" value="{{ degree_key }}">
+            <div>
+                <label>Pick course</label>
+                <select name="course">
+                    {% for row in degree_courses %}
+                        <option value="{{ row.course_no }}" {% if course_key == row.course_no %}selected{% endif %}>{{ row.course_no }} – {{ row.title }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <button type="submit">Change Course</button>
+            </div>
+        </form>
+        {% if course_key %}
+            <div class="flex">
+                <div>
+                    <h3>Add Objective</h3>
+                    <form method="post">
+                        <input type="hidden" name="action" value="add_dco">
+                        <input type="hidden" name="degree_name" value="{{ selected_degree[0] }}">
+                        <input type="hidden" name="degree_level" value="{{ selected_degree[1] }}">
+                        <input type="hidden" name="course_no" value="{{ course_key }}">
+                        <input type="hidden" name="next_degree" value="{{ degree_key }}">
+                        <input type="hidden" name="next_course" value="{{ course_key }}">
+                        <label>Objective
+                            <select name="objective_code">
+                                {% for obj in available_objectives %}
+                                    <option value="{{ obj.code }}">{{ obj.code }} – {{ obj.title }}</option>
+                                {% endfor %}
+                            </select>
+                        </label>
+                        <button type="submit">Link Objective</button>
+                    </form>
+                </div>
+                <div>
+                    <h3>Objectives for {{ course_key }}</h3>
+                    <table>
+                        <tr>
+                            <th>Code</th>
+                            <th>Title</th>
+                            <th></th>
+                        </tr>
+                        {% for row in dco_rows %}
+                            <tr>
+                                <td>{{ row.objective_code }}</td>
+                                <td>{{ row.title }}</td>
+                                <td>
+                                    <form method="post" onsubmit="return confirm('Remove this objective from the course?');">
+                                        <input type="hidden" name="action" value="remove_dco">
+                                        <input type="hidden" name="degree_name" value="{{ selected_degree[0] }}">
+                                        <input type="hidden" name="degree_level" value="{{ selected_degree[1] }}">
+                                        <input type="hidden" name="course_no" value="{{ course_key }}">
+                                        <input type="hidden" name="objective_code" value="{{ row.objective_code }}">
+                                        <input type="hidden" name="next_degree" value="{{ degree_key }}">
+                                        <input type="hidden" name="next_course" value="{{ course_key }}">
+                                        <button type="submit" class="secondary">Remove</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </table>
+                </div>
+            </div>
+        {% else %}
+            <p class="summary">Assign at least one course to the degree to manage objectives.</p>
+        {% endif %}
+    {% else %}
+        <p class="summary">Create a degree first.</p>
+    {% endif %}
+</div>
+{% endblock %}

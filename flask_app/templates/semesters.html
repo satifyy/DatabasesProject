@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% block title %}Manage Semesters & Sections · Curriculum Assessment{% endblock %}
+{% block content %}
+<div class="card">
+    <h2>Semesters</h2>
+    <div class="flex">
+        <div>
+            <h3>Add Semester</h3>
+            <form method="post">
+                <input type="hidden" name="action" value="create_semester">
+                <label>Year
+                    <input type="number" name="semester_year" placeholder="2024" required>
+                </label>
+                <label>Term
+                    <select name="semester_term" required>
+                        {% for term in term_options %}
+                            <option value="{{ term }}">{{ term }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+                <button type="submit">Save Semester</button>
+            </form>
+        </div>
+        <div>
+            <h3>Current Semesters</h3>
+            <table>
+                <tr><th>Year</th><th>Term</th><th></th></tr>
+                {% for sem in semesters %}
+                    <tr>
+                        <td>{{ sem.year }}</td>
+                        <td>{{ sem.term }}</td>
+                        <td>
+                            <form method="post" onsubmit="return confirm('Delete this semester?');">
+                                <input type="hidden" name="action" value="delete_semester">
+                                <input type="hidden" name="semester_year" value="{{ sem.year }}">
+                                <input type="hidden" name="semester_term" value="{{ sem.term }}">
+                                <button type="submit" class="secondary">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h2>Sections</h2>
+    <div class="flex">
+        <div>
+            <h3>Create / Update Section</h3>
+            <form method="post">
+                <input type="hidden" name="action" value="save_section">
+                <label>Course
+                    <select name="section_course" required>
+                        {% for course in courses %}
+                            <option value="{{ course.course_no }}">{{ course.course_no }} – {{ course.title }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+                <label>Year
+                    <input type="number" name="section_year" placeholder="2024" required>
+                </label>
+                <label>Term
+                    <select name="section_term" required>
+                        {% for term in term_options %}
+                            <option value="{{ term }}">{{ term }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+                <label>Section Number (3 digits)
+                    <input type="text" name="section_no" placeholder="001" maxlength="3" required>
+                </label>
+                <label>Instructor
+                    <select name="section_instructor" required>
+                        {% for inst in instructors %}
+                            <option value="{{ inst.instructor_id }}">{{ inst.name }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+                <label>Enrollment Count
+                    <input type="number" name="section_enrolled" min="0" value="0">
+                </label>
+                <button type="submit">Save Section</button>
+            </form>
+        </div>
+        <div>
+            <h3>Scheduled Sections</h3>
+            <table>
+                <tr>
+                    <th>Course</th>
+                    <th>Title</th>
+                    <th>Semester</th>
+                    <th>Section</th>
+                    <th>Instructor</th>
+                    <th>Enrolled</th>
+                    <th></th>
+                </tr>
+                {% for row in sections %}
+                    <tr>
+                        <td>{{ row.course_no }}</td>
+                        <td>{{ row.title }}</td>
+                        <td>{{ row.term }} {{ row.year }}</td>
+                        <td>{{ row.section_no }}</td>
+                        <td>{{ row.instructor_name }}</td>
+                        <td>{{ row.enrolled_count }}</td>
+                        <td>
+                            <form method="post" onsubmit="return confirm('Delete this section?');">
+                                <input type="hidden" name="action" value="delete_section">
+                                <input type="hidden" name="section_course" value="{{ row.course_no }}">
+                                <input type="hidden" name="section_year" value="{{ row.year }}">
+                                <input type="hidden" name="section_term" value="{{ row.term }}">
+                                <input type="hidden" name="section_no" value="{{ row.section_no }}">
+                                <button type="submit" class="secondary">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
