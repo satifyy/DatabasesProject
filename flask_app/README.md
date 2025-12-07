@@ -83,13 +83,12 @@ This installs Flask, PyMySQL, and python-dotenv.
 
 The app is organized into focused pages so new users can follow the exact workflow from the project spec:
 
-1. **Manage Degrees** – create BA/BS/MS/Ph.D./Cert programs, attach catalog courses, mark core requirements, and map objectives per course.
+1. **Manage Degrees** – create BA/BS/MS/Ph.D./Cert programs, attach catalog courses, mark core requirements, and map objectives per course (the Degree–Course–Objective mapping lives entirely here).
 2. **Manage Courses** – maintain the course catalog and instructor directory.
 3. **Manage Objectives** – define learning objectives (120-char titles with unique constraint).
 4. **Manage Semesters & Sections** – add semesters, then create sections with 3-digit section numbers, instructor assignments, and enrollment counts.
-5. **Associate Courses with Objectives** – link any course to the objectives it supports (independent of degree logic).
-6. **Enter/Review Evaluations** – pick a degree, semester, and instructor to see each section’s required objectives, enter assessment data, and view the “X / Y evaluated (Z%)” summary plus missing codes.
-7. **Run Queries / Reports** – execute the required SQL-driven reports:
+5. **Enter/Review Evaluations** – pick a degree, semester, and instructor to see each section’s required objectives, enter assessment data, view the “X / Y evaluated (Z%)” summary plus missing codes, and copy an evaluation from one degree to another when courses/objectives overlap.
+6. **Run Queries / Reports** – execute the required SQL-driven reports:
    - degree-specific course/objective/section listings,
    - degree objective → courses lookup,
    - course and instructor history within a semester range,
@@ -106,10 +105,9 @@ Each form posts to its own page and immediately flashes success/error messages a
 - **Semester** – valid `(year, term)` pairs (`term` limited to Spring/Summer/Fall).
 - **Section** – individual offerings with `(course_no, year, term, section_no)` primary key, 3-digit `section_no` check, instructor, and enrollment count.
 - **Objective** – learning objectives keyed by `code`, 120-character unique `title`.
-- **CourseObjective** – general association between a course and the objectives it supports.
 - **DegreeCourse** – join table between Degree and Course, with an `is_core` flag.
 - **DegreeCourseObjective** – objectives required for a given degree + course.
-- **Evaluation** – assessment rows per section/degree/objective pairing; stores method label, A/B/C/F counts, and improvement text.
+- **Evaluation** – per-section/per-objective assessment rows; `method_label` (≤40 chars) is part of the key, A/B/C/F counts are non-null with defaults of 0, and `updated_at` captures the last change.
 
 ## 9. Troubleshooting
 

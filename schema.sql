@@ -15,8 +15,7 @@ CREATE TABLE IF NOT EXISTS Course (
     course_no VARCHAR(20) NOT NULL,
     title VARCHAR(120) NOT NULL,
     description TEXT,
-    PRIMARY KEY (course_no),
-    UNIQUE KEY uq_course_title (title)
+    PRIMARY KEY (course_no)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Instructor: faculty directory keyed only by instructor_id
@@ -59,15 +58,6 @@ CREATE TABLE IF NOT EXISTS Objective (
     CONSTRAINT uq_objective_title UNIQUE (title)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- CourseObjective: general course-to-objective relationships
-CREATE TABLE IF NOT EXISTS CourseObjective (
-    course_no VARCHAR(20) NOT NULL,
-    objective_code VARCHAR(20) NOT NULL,
-    PRIMARY KEY (course_no, objective_code),
-    CONSTRAINT fk_co_course FOREIGN KEY (course_no) REFERENCES Course(course_no) ON DELETE CASCADE,
-    CONSTRAINT fk_co_objective FOREIGN KEY (objective_code) REFERENCES Objective(code) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
 -- DegreeCourse: relationship between Degree and Course, with core flag
 CREATE TABLE IF NOT EXISTS DegreeCourse (
     name VARCHAR(100) NOT NULL,
@@ -102,21 +92,22 @@ CREATE TABLE IF NOT EXISTS Evaluation (
     name VARCHAR(100) NOT NULL,
     level VARCHAR(50) NOT NULL,
     objective_code VARCHAR(20) NOT NULL,
-    method_label VARCHAR(120) NULL,
-    a_count INT NULL,
-    b_count INT NULL,
-    c_count INT NULL,
-    f_count INT NULL,
+    method_label VARCHAR(40) NOT NULL,
+    a_count INT NOT NULL DEFAULT 0,
+    b_count INT NOT NULL DEFAULT 0,
+    c_count INT NOT NULL DEFAULT 0,
+    f_count INT NOT NULL DEFAULT 0,
     improvement_text TEXT NULL,
-    PRIMARY KEY (course_no, year, term, section_no, name, level, objective_code),
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (course_no, year, term, section_no, name, level, objective_code, method_label),
     CONSTRAINT fk_eval_section FOREIGN KEY (course_no, year, term, section_no)
         REFERENCES Section(course_no, year, term, section_no) ON DELETE CASCADE,
     CONSTRAINT fk_eval_dco FOREIGN KEY (name, level, course_no, objective_code)
         REFERENCES DegreeCourseObjective(name, level, course_no, objective_code) ON DELETE CASCADE,
     CONSTRAINT ck_eval_counts_nonneg CHECK (
-        (a_count IS NULL OR a_count >= 0) AND
-        (b_count IS NULL OR b_count >= 0) AND
-        (c_count IS NULL OR c_count >= 0) AND
-        (f_count IS NULL OR f_count >= 0)
+        a_count >= 0 AND
+        b_count >= 0 AND
+        c_count >= 0 AND
+        f_count >= 0
     )
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

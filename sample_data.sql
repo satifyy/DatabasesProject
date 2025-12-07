@@ -21,11 +21,11 @@ INSERT INTO Semester (year, term) VALUES
     (2024, 'Fall');
 
 INSERT INTO Section (course_no, year, term, section_no, instructor_id, enrolled_count) VALUES
-    ('CS101', 2024, 'Spring', '01', 'I001', 45),
-    ('CS201', 2024, 'Spring', '01', 'I002', 35),
-    ('DS510', 2024, 'Fall', '01', 'I002', 20),
-    ('DS520', 2024, 'Fall', '02', 'I003', 18),
-    ('CS201', 2023, 'Fall', '01', 'I001', 30);
+    ('CS101', 2024, 'Spring', '001', 'I001', 45),
+    ('CS201', 2024, 'Spring', '001', 'I002', 35),
+    ('DS510', 2024, 'Fall', '001', 'I002', 20),
+    ('DS520', 2024, 'Fall', '002', 'I003', 18),
+    ('CS201', 2023, 'Fall', '001', 'I001', 30);
 
 INSERT INTO Objective (code, title, description) VALUES
     ('OBJ1', 'Problem Solving', 'Apply algorithmic thinking to novel problems.'),
@@ -57,11 +57,11 @@ INSERT INTO Evaluation (
     course_no, year, term, section_no, name, level, objective_code,
     method_label, a_count, b_count, c_count, f_count, improvement_text
 ) VALUES
-    ('CS101', 2024, 'Spring', '01', 'Computer Science', 'Bachelors', 'OBJ1',
+    ('CS101', 2024, 'Spring', '001', 'Computer Science', 'Bachelors', 'OBJ1',
         'Final Exam', 20, 15, 5, 5, 'Add more peer programming practice.'),
-    ('CS101', 2024, 'Spring', '01', 'Computer Science', 'Bachelors', 'OBJ4',
-        'Presentation', 18, 12, NULL, NULL, NULL),
-    ('DS510', 2024, 'Fall', '01', 'Data Science', 'Masters', 'OBJ3',
+    ('CS101', 2024, 'Spring', '001', 'Computer Science', 'Bachelors', 'OBJ4',
+        'Presentation', 18, 12, 5, 10, NULL),
+    ('DS510', 2024, 'Fall', '001', 'Data Science', 'Masters', 'OBJ3',
         'Capstone', 8, 7, 4, 1, 'Invite more industry mentors.'),
-    ('DS520', 2024, 'Fall', '02', 'Data Science', 'Masters', 'OBJ1',
+    ('DS520', 2024, 'Fall', '002', 'Data Science', 'Masters', 'OBJ1',
         'Case Study', 10, 5, 2, 1, NULL);

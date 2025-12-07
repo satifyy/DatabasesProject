@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import re
 from typing import Any, Dict, List, Sequence, Tuple
 
 from flask import Flask, flash, g, redirect, render_template, request, url_for
@@ -20,10 +21,11 @@ NAV_LINKS = [
     {"endpoint": "manage_courses", "label": "Manage Courses"},
     {"endpoint": "manage_objectives", "label": "Manage Objectives"},
     {"endpoint": "manage_semesters", "label": "Manage Semesters & Sections"},
-    {"endpoint": "course_objectives", "label": "Associate Courses with Objectives"},
     {"endpoint": "evaluations", "label": "Enter/Review Evaluations"},
     {"endpoint": "reports", "label": "Run Queries / Reports"},
 ]
+COURSE_NO_PATTERN = re.compile(r"^[A-Za-z]{2,4}[0-9]{4}$")
+SECTION_NO_PATTERN = re.compile(r"^[0-9]{3}$")
 
 
 def get_db():
@@ -80,18 +82,32 @@ def parse_degree_key(key: str | None) -> Tuple[str, str] | None:
     return name, level
 
 
+def parse_evaluation_count(label: str, value: str | None) -> int:
+    if value in (None, ""):
+        raise RuntimeError("Enter counts for all grade levels (A, B, C, F).")
+    try:
+        parsed = int(value)
+    except ValueError as exc:
+        raise RuntimeError(f"{label} must be an integer.") from exc
+    if parsed < 0:
+        raise RuntimeError(f"{label} must be non-negative.")
+    return parsed
+
+
 def evaluation_status_label(row: Dict[str, Any]) -> str:
-    has_values = [
-        row.get("method_label"),
-        row.get("a_count"),
-        row.get("b_count"),
-        row.get("c_count"),
-        row.get("f_count"),
+    method = (row.get("method_label") or "").strip()
+    counts = [
+        row.get("a_count") if row.get("a_count") is not None else 0,
+        row.get("b_count") if row.get("b_count") is not None else 0,
+        row.get("c_count") if row.get("c_count") is not None else 0,
+        row.get("f_count") if row.get("f_count") is not None else 0,
     ]
-    if not any(v not in (None, "") for v in has_values):
+    has_counts = any(counts)
+    if not method and not has_counts:
         return "No Evaluation"
-    complete = all(row.get(key) is not None for key in ("method_label", "a_count", "b_count", "c_count", "f_count"))
-    return "Complete" if complete else "Partial"
+    if method and has_counts:
+        return "Complete"
+    return "Partial"
 
 
 def evaluation_complete(row: Dict[str, Any]) -> bool:
@@ -327,6 +343,8 @@ def manage_courses():
                 description = (request.form.get("course_description") or "").strip()
                 if not course_no or not title:
                     raise RuntimeError("Course number and title are required.")
+                if not COURSE_NO_PATTERN.match(course_no):
+                    raise RuntimeError("Course number must be 2-4 letters followed by a four-digit number (e.g., CS1010).")
                 execute(
                     conn,
                     "INSERT INTO Course(course_no, title, description) VALUES (%s,%s,%s) "
@@ -425,6 +443,8 @@ def manage_semesters():
                 enrolled = parse_int(request.form.get("section_enrolled"), 0)
                 if not all([course_no, year, term, section_no, instructor]):
                     raise RuntimeError("Course, semester, section, and instructor are required.")
+                if not SECTION_NO_PATTERN.match(section_no):
+                    raise RuntimeError("Section number must be exactly three digits (e.g., 001).")
                 execute(
                     conn,
                     "INSERT INTO Section(course_no, year, term, section_no, instructor_id, enrolled_count) "
@@ -467,65 +487,6 @@ def manage_semesters():
     )
 
 
-@app.route("/course-objectives", methods=["GET", "POST"])
-def course_objectives():
-    conn = get_db()
-    if request.method == "POST":
-        action = request.form.get("action")
-        selected_course = request.form.get("selected_course") or ""
-        try:
-            if action == "add_course_objective":
-                course_no = request.form.get("course_no") or ""
-                objective = request.form.get("objective_code") or ""
-                if not course_no or not objective:
-                    raise RuntimeError("Course and objective are required.")
-                execute(
-                    conn,
-                    "INSERT INTO CourseObjective(course_no, objective_code) VALUES (%s,%s) "
-                    "ON DUPLICATE KEY UPDATE objective_code=objective_code",
-                    (course_no, objective),
-                )
-                selected_course = course_no
-                flash("Objective linked to course.", "success")
-            elif action == "remove_course_objective":
-                course_no = request.form.get("course_no") or ""
-                objective = request.form.get("objective_code") or ""
-                execute(
-                    conn,
-                    "DELETE FROM CourseObjective WHERE course_no=%s AND objective_code=%s",
-                    (course_no, objective),
-                )
-                selected_course = course_no
-                flash("Course-objective link removed.", "success")
-        except Exception as exc:
-            flash(str(exc), "error")
-        return redirect(url_for("course_objectives", course=selected_course))
-
-    courses = query_all(conn, "SELECT course_no, title FROM Course ORDER BY course_no")
-    selected_course = request.args.get("course") or (courses[0]["course_no"] if courses else "")
-    assigned: List[Dict[str, Any]] = []
-    available: List[Dict[str, Any]] = []
-    if selected_course:
-        assigned = query_all(
-            conn,
-            "SELECT o.code, o.title FROM CourseObjective co JOIN Objective o ON o.code=co.objective_code "
-            "WHERE co.course_no=%s ORDER BY o.code",
-            (selected_course,),
-        )
-        available = query_all(
-            conn,
-            "SELECT code, title FROM Objective WHERE code NOT IN (SELECT objective_code FROM CourseObjective WHERE course_no=%s) ORDER BY code",
-            (selected_course,),
-        )
-    return render_template(
-        "course_objectives.html",
-        courses=courses,
-        selected_course=selected_course,
-        assigned=assigned,
-        available=available,
-    )
-
-
 def _evaluation_filter_defaults(degrees: List[Dict[str, Any]], instructors: List[Dict[str, Any]], semesters: List[Dict[str, Any]]):
     degree = {"name": "", "level": ""}
     instructor = ""
@@ -559,6 +520,7 @@ def evaluations():
             degree_level = request.form.get("degree_level") or ""
             objective = request.form.get("objective_code") or ""
             method = (request.form.get("method_label") or "").strip()
+            original_method = (request.form.get("original_method") or "").strip()
             a_count = request.form.get("a_count")
             b_count = request.form.get("b_count")
             c_count = request.form.get("c_count")
@@ -567,6 +529,10 @@ def evaluations():
             try:
                 if not all([course_no, section_no, year, term, degree_name, degree_level, objective]):
                     raise RuntimeError("Missing evaluation identifiers.")
+                if not method:
+                    raise RuntimeError("Method label is required.")
+                if len(method) > 40:
+                    raise RuntimeError("Method label must be 40 characters or fewer.")
                 section_row = query_scalar(
                     conn,
                     "SELECT enrolled_count FROM Section WHERE course_no=%s AND year=%s AND term=%s AND section_no=%s",
@@ -581,18 +547,23 @@ def evaluations():
                 )
                 if not dco_exists:
                     raise RuntimeError("Objective is not valid for this degree/course.")
-                counts = []
-                parsed_counts = []
-                for value in (a_count, b_count, c_count, f_count):
-                    if value in (None, ""):
-                        parsed_counts.append(None)
-                    else:
-                        parsed_counts.append(int(value))
-                counts = [c for c in parsed_counts if c is not None]
-                if counts:
-                    total_counts = sum(counts)
-                    if total_counts > int(section_row):
-                        raise RuntimeError("Counts cannot exceed the enrolled total.")
+                parsed_counts = [
+                    parse_evaluation_count("A count", a_count),
+                    parse_evaluation_count("B count", b_count),
+                    parse_evaluation_count("C count", c_count),
+                    parse_evaluation_count("F count", f_count),
+                ]
+                total_counts = sum(parsed_counts)
+                if total_counts > int(section_row):
+                    raise RuntimeError("Counts cannot exceed the enrolled total.")
+
+                if original_method and original_method != method:
+                    execute(
+                        conn,
+                        "DELETE FROM Evaluation WHERE course_no=%s AND year=%s AND term=%s AND section_no=%s "
+                        "AND name=%s AND level=%s AND objective_code=%s AND method_label=%s",
+                        (course_no, year, term, section_no, degree_name, degree_level, objective, original_method),
+                    )
                 execute(
                     conn,
                     "INSERT INTO Evaluation(course_no, year, term, section_no, name, level, objective_code, "
@@ -609,7 +580,7 @@ def evaluations():
                         degree_name,
                         degree_level,
                         objective,
-                        method or None,
+                        method,
                         parsed_counts[0],
                         parsed_counts[1],
                         parsed_counts[2],
@@ -625,6 +596,83 @@ def evaluations():
                 "degree": degree_combo,
                 "degree_name": request.form.get("filter_degree_name") or degree_name,
                 "degree_level": request.form.get("filter_degree_level") or degree_level,
+                "year": request.form.get("filter_year") or (year or ""),
+                "term": request.form.get("filter_term") or term,
+                "instructor_id": request.form.get("filter_instructor") or request.form.get("instructor_id") or "",
+            }
+            return redirect(url_for("evaluations", **{k: v for k, v in redirect_params.items() if v}))
+        elif action == "copy_evaluation":
+            course_no = request.form.get("course_no") or ""
+            section_no = request.form.get("section_no") or ""
+            year = parse_int(request.form.get("year"))
+            term = request.form.get("term") or ""
+            source_name = request.form.get("degree_name") or ""
+            source_level = request.form.get("degree_level") or ""
+            objective = request.form.get("objective_code") or ""
+            target_key = request.form.get("target_degree") or ""
+            method = (request.form.get("method_label") or "").strip()
+            improvement = (request.form.get("improvement_text") or "").strip()
+            a_count = request.form.get("a_count")
+            b_count = request.form.get("b_count")
+            c_count = request.form.get("c_count")
+            f_count = request.form.get("f_count")
+            try:
+                if not all([course_no, section_no, year, term, source_name, source_level, objective, target_key]):
+                    raise RuntimeError("Complete the copy form before submitting.")
+                if "|" not in target_key:
+                    raise RuntimeError("Select a destination degree.")
+                target_name, target_level = target_key.split("|", 1)
+                if target_name == source_name and target_level == source_level:
+                    raise RuntimeError("Select a different degree to copy into.")
+                if not method:
+                    raise RuntimeError("Cannot copy because the evaluation has no method.")
+                if len(method) > 40:
+                    raise RuntimeError("Method label must be 40 characters or fewer.")
+                parsed_counts = [
+                    parse_evaluation_count("A count", a_count),
+                    parse_evaluation_count("B count", b_count),
+                    parse_evaluation_count("C count", c_count),
+                    parse_evaluation_count("F count", f_count),
+                ]
+                dco_exists = query_one(
+                    conn,
+                    "SELECT 1 FROM DegreeCourseObjective WHERE name=%s AND level=%s AND course_no=%s AND objective_code=%s",
+                    (target_name, target_level, course_no, objective),
+                )
+                if not dco_exists:
+                    raise RuntimeError("Destination degree does not include this course/objective.")
+                execute(
+                    conn,
+                    "INSERT INTO Evaluation(course_no, year, term, section_no, name, level, objective_code, "
+                    "method_label, a_count, b_count, c_count, f_count, improvement_text) "
+                    "VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) "
+                    "ON DUPLICATE KEY UPDATE method_label=VALUES(method_label), a_count=VALUES(a_count), "
+                    "b_count=VALUES(b_count), c_count=VALUES(c_count), f_count=VALUES(f_count), "
+                    "improvement_text=VALUES(improvement_text)",
+                    (
+                        course_no,
+                        year,
+                        term,
+                        section_no,
+                        target_name,
+                        target_level,
+                        objective,
+                        method,
+                        parsed_counts[0],
+                        parsed_counts[1],
+                        parsed_counts[2],
+                        parsed_counts[3],
+                        improvement or None,
+                    ),
+                )
+                flash(f"Evaluation copied to {target_name} ({target_level}).", "success")
+            except Exception as exc:
+                flash(str(exc), "error")
+            degree_combo = f"{source_name}|{source_level}" if source_name and source_level else ""
+            redirect_params = {
+                "degree": degree_combo,
+                "degree_name": request.form.get("filter_degree_name") or source_name,
+                "degree_level": request.form.get("filter_degree_level") or source_level,
                 "year": request.form.get("filter_year") or (year or ""),
                 "term": request.form.get("filter_term") or term,
                 "instructor_id": request.form.get("filter_instructor") or request.form.get("instructor_id") or "",
@@ -661,6 +709,13 @@ def evaluations():
         )
         for row in section_rows:
             row["status"] = evaluation_status_label(row)
+            row["other_degrees"] = query_all(
+                conn,
+                "SELECT DISTINCT name, level FROM DegreeCourseObjective "
+                "WHERE course_no=%s AND objective_code=%s AND NOT (name=%s AND level=%s) "
+                "ORDER BY name, level",
+                (row["course_no"], row["objective_code"], filter_name, filter_level),
+            )
         section_map: Dict[Tuple[str, str, int, str], Dict[str, Any]] = {}
         for row in section_rows:
             key = (row["course_no"], row["section_no"], row["year"], row["term"])
@@ -800,7 +855,7 @@ def reports():
                 "FROM DegreeCourse dc JOIN Section s ON s.course_no=dc.course_no "
                 "JOIN Course c ON c.course_no=s.course_no JOIN Instructor i ON i.instructor_id=s.instructor_id "
                 "WHERE dc.name=%s AND dc.level=%s AND ((s.year*10 + CASE s.term WHEN 'Spring' THEN 1 WHEN 'Summer' THEN 2 WHEN 'Fall' THEN 3 ELSE 0 END) BETWEEN %s AND %s) "
-                "ORDER BY s.year, FIELD(s.term,'Spring','Summer','Fall'), s.course_no, s.section_no",
+                "ORDER BY s.year, FIELD(s.term,'Spring','Summer','Fall'), s.section_no",
                 (name, level, start_val, end_val),
             )
             objectives_rows = query_all(
@@ -854,7 +909,7 @@ def reports():
                 "SELECT s.course_no, c.title, s.section_no, s.year, s.term, s.enrolled_count "
                 "FROM Section s JOIN Course c ON c.course_no=s.course_no "
                 "WHERE s.instructor_id=%s AND ((s.year*10 + CASE s.term WHEN 'Spring' THEN 1 WHEN 'Summer' THEN 2 WHEN 'Fall' THEN 3 ELSE 0 END) BETWEEN %s AND %s) "
-                "ORDER BY s.year, FIELD(s.term,'Spring','Summer','Fall'), s.course_no, s.section_no",
+                "ORDER BY s.year, FIELD(s.term,'Spring','Summer','Fall'), s.section_no",
                 (instructor_id, start_val, end_val),
             )
             report_data["instructor_report"] = {"filters": instructor_filters, "rows": rows}
@@ -864,7 +919,7 @@ def reports():
             rows = query_all(
                 conn,
                 "SELECT s.course_no, c.title, s.section_no, s.year, s.term, i.name AS instructor_name, s.enrolled_count, "
-                "       COALESCE(SUM(CASE WHEN e.method_label IS NOT NULL AND e.a_count IS NOT NULL AND e.b_count IS NOT NULL AND e.c_count IS NOT NULL AND e.f_count IS NOT NULL THEN 1 ELSE 0 END),0) AS complete_rows, "
+                "       COALESCE(SUM(CASE WHEN e.method_label IS NOT NULL AND (e.a_count + e.b_count + e.c_count + e.f_count) > 0 THEN 1 ELSE 0 END),0) AS complete_rows, "
                 "       COALESCE(COUNT(e.objective_code),0) AS eval_rows, "
                 "       COALESCE(SUM(CASE WHEN e.improvement_text IS NOT NULL AND e.improvement_text <> '' THEN 1 ELSE 0 END),0) AS improvements "
                 "FROM Section s JOIN Course c ON c.course_no=s.course_no JOIN Instructor i ON i.instructor_id=s.instructor_id "
