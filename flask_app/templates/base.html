@@ -5,42 +5,336 @@
     <title>{% block title %}Curriculum Assessment{% endblock %}</title>
     <style>
         :root {
-            --primary: #004080;
-            --accent: #2a7ae2;
-            --bg: #f4f6fb;
+            --primary: #0d47a1;
+            --primary-dark: #002171;
+            --primary-light: #5472d3;
+            --accent: #1976d2;
+            --accent-hover: #1565c0;
+            --success: #2e7d32;
+            --success-light: #e8f5e9;
+            --warning: #f57c00;
+            --warning-light: #fff3e0;
+            --error: #c62828;
+            --error-light: #ffebee;
+            --bg: #f5f7fa;
+            --bg-secondary: #e3f2fd;
             --card: #ffffff;
-            --text: #1f2a44;
+            --text: #212121;
+            --text-secondary: #546e7a;
+            --border: #e0e0e0;
+            --border-light: #f0f0f0;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
+            --shadow-lg: 0 10px 30px rgba(0,0,0,0.12);
+            --transition: all 0.2s ease;
         }
+        
         * { box-sizing: border-box; }
-        body { font-family: "Segoe UI", Arial, sans-serif; margin: 0; background: var(--bg); color: var(--text); }
-        header { background: var(--primary); color: #fff; padding: 1rem 2rem; }
-        header h1 { margin: 0; font-size: 1.75rem; }
-        nav { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.75rem; }
-        nav a { color: #fff; text-decoration: none; padding: 0.35rem 0.75rem; border-radius: 999px; border: 1px solid rgba(255,255,255,0.35); font-size: 0.95rem; }
-        nav a.active { background: #fff; color: var(--primary); }
-        main { padding: 1.5rem; max-width: 1200px; margin: 0 auto; }
-        .card { background: var(--card); border-radius: 10px; padding: 1.25rem; margin-bottom: 1.5rem; box-shadow: 0 6px 20px rgba(12, 31, 80, 0.08); }
-        h2 { margin-top: 0; font-size: 1.4rem; }
-        h3 { margin-top: 1.5rem; font-size: 1.1rem; }
-        form { margin-bottom: 1rem; }
-        label { display: block; margin-bottom: 0.35rem; font-weight: 600; }
-        input[type="text"], input[type="number"], select, textarea { width: 100%; padding: 0.55rem; border: 1px solid #ccd6eb; border-radius: 6px; margin-bottom: 0.75rem; font-size: 0.95rem; }
-        textarea { min-height: 80px; }
-        button { background: var(--accent); color: #fff; border: none; border-radius: 6px; padding: 0.45rem 0.9rem; cursor: pointer; font-weight: 600; }
-        button.secondary { background: #8895b3; }
-        table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; font-size: 0.93rem; }
-        th, td { border: 1px solid #e1e5f2; padding: 0.45rem; text-align: left; }
-        th { background: #eef2fb; font-weight: 600; }
-        .messages { border-radius: 8px; padding: 0.85rem 1rem; margin-bottom: 1rem; }
-        .messages.success { background: #e9f7ef; color: #0f6848; }
-        .messages.error { background: #fdecea; color: #a03c3c; }
-        .flex { display: flex; flex-wrap: wrap; gap: 1rem; }
-        .flex > * { flex: 1 1 280px; }
-        .summary { font-size: 0.95rem; color: #37446b; }
-        .tag { display: inline-block; padding: 0.2rem 0.5rem; border-radius: 999px; font-size: 0.8rem; background: #e6eefc; color: #1f3f7f; margin-right: 0.35rem; }
-        .status-complete { color: #0a8f4d; font-weight: 600; }
-        .status-partial { color: #d08300; font-weight: 600; }
-        .status-none { color: #a03c3c; font-weight: 600; }
+        
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            margin: 0; 
+            background: var(--bg); 
+            color: var(--text);
+            line-height: 1.6;
+        }
+        
+        header { 
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: #fff; 
+            padding: 1.5rem 2rem;
+            box-shadow: var(--shadow-md);
+        }
+        
+        header h1 { 
+            margin: 0; 
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+        
+        nav { 
+            display: flex; 
+            flex-wrap: wrap; 
+            gap: 0.75rem; 
+            margin-top: 1rem; 
+        }
+        
+        nav a { 
+            color: #fff; 
+            text-decoration: none; 
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.3);
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: var(--transition);
+            background: rgba(255,255,255,0.1);
+        }
+        
+        nav a:hover {
+            background: rgba(255,255,255,0.2);
+            border-color: rgba(255,255,255,0.5);
+            transform: translateY(-1px);
+        }
+        
+        nav a.active { 
+            background: #fff; 
+            color: var(--primary);
+            border-color: #fff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        
+        main { 
+            padding: 2rem; 
+            max-width: 1280px; 
+            margin: 0 auto; 
+        }
+        
+        .card { 
+            background: var(--card); 
+            border-radius: 12px; 
+            padding: 1.75rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-light);
+            transition: var(--transition);
+        }
+        
+        .card:hover {
+            box-shadow: var(--shadow-lg);
+        }
+        
+        h2 { 
+            margin-top: 0; 
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 1.25rem;
+            letter-spacing: -0.3px;
+        }
+        
+        h3 { 
+            margin-top: 1.5rem; 
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 1rem;
+        }
+        
+        form { margin-bottom: 1.5rem; }
+        
+        label { 
+            display: block; 
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--text);
+            font-size: 0.9rem;
+        }
+        
+        input[type="text"], 
+        input[type="number"], 
+        select, 
+        textarea { 
+            width: 100%; 
+            padding: 0.75rem;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-size: 0.95rem;
+            transition: var(--transition);
+            background: var(--card);
+            font-family: inherit;
+        }
+        
+        input[type="text"]:focus, 
+        input[type="number"]:focus, 
+        select:focus, 
+        textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
+        }
+        
+        textarea { 
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        button { 
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 0.65rem 1.25rem;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: var(--transition);
+            box-shadow: var(--shadow-sm);
+        }
+        
+        button:hover {
+            background: var(--accent-hover);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        button.secondary { 
+            background: #78909c;
+        }
+        
+        button.secondary:hover {
+            background: #607d8b;
+        }
+        
+        table { 
+            width: 100%; 
+            border-collapse: collapse;
+            margin-top: 1rem;
+            font-size: 0.95rem;
+            background: var(--card);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        th, td { 
+            border: 1px solid var(--border-light);
+            padding: 0.75rem;
+            text-align: left;
+        }
+        
+        th { 
+            background: linear-gradient(to bottom, #f8f9fa 0%, #e9ecef 100%);
+            font-weight: 600;
+            color: var(--text);
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+        }
+        
+        tbody tr {
+            transition: var(--transition);
+        }
+        
+        tbody tr:nth-child(even) {
+            background: #fafbfc;
+        }
+        
+        tbody tr:hover {
+            background: var(--bg-secondary);
+            transform: scale(1.002);
+        }
+        
+        .messages { 
+            border-radius: 10px;
+            padding: 1rem 1.25rem;
+            margin-bottom: 1.5rem;
+            border-left: 4px solid;
+            box-shadow: var(--shadow-sm);
+            font-weight: 500;
+        }
+        
+        .messages.success { 
+            background: var(--success-light);
+            color: var(--success);
+            border-color: var(--success);
+        }
+        
+        .messages.error { 
+            background: var(--error-light);
+            color: var(--error);
+            border-color: var(--error);
+        }
+        
+        .flex { 
+            display: flex; 
+            flex-wrap: wrap; 
+            gap: 1.5rem; 
+        }
+        
+        .flex > * { 
+            flex: 1 1 300px; 
+        }
+        
+        .summary { 
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+        
+        .tag { 
+            display: inline-block;
+            padding: 0.25rem 0.65rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            background: var(--bg-secondary);
+            color: var(--primary);
+            margin-right: 0.5rem;
+            font-weight: 600;
+            border: 1px solid var(--border);
+        }
+        
+        .status-complete { 
+            color: var(--success);
+            font-weight: 700;
+        }
+        
+        .status-partial { 
+            color: var(--warning);
+            font-weight: 700;
+        }
+        
+        .status-none { 
+            color: var(--error);
+            font-weight: 700;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            header {
+                padding: 1rem 1.5rem;
+            }
+            
+            header h1 {
+                font-size: 1.5rem;
+            }
+            
+            nav {
+                gap: 0.5rem;
+            }
+            
+            nav a {
+                padding: 0.4rem 0.8rem;
+                font-size: 0.9rem;
+            }
+            
+            main {
+                padding: 1rem;
+            }
+            
+            .card {
+                padding: 1.25rem;
+                margin-bottom: 1.5rem;
+            }
+            
+            h2 {
+                font-size: 1.5rem;
+            }
+            
+            table {
+                font-size: 0.85rem;
+            }
+            
+            th, td {
+                padding: 0.5rem;
+            }
+        }
     </style>
 </head>
 <body>
