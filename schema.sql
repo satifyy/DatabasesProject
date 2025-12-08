@@ -15,7 +15,8 @@ CREATE TABLE IF NOT EXISTS Course (
     course_no VARCHAR(20) NOT NULL,
     title VARCHAR(120) NOT NULL,
     description TEXT,
-    PRIMARY KEY (course_no)
+    PRIMARY KEY (course_no),
+    CONSTRAINT ck_course_number CHECK (course_no REGEXP '^[A-Za-z]{2,4}[0-9]{4}$')
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Instructor: faculty directory keyed only by instructor_id
@@ -97,7 +98,7 @@ CREATE TABLE IF NOT EXISTS Evaluation (
     b_count INT NOT NULL DEFAULT 0,
     c_count INT NOT NULL DEFAULT 0,
     f_count INT NOT NULL DEFAULT 0,
-    improvement_text TEXT NULL,
+    improvement_text VARCHAR(2000) NULL,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (course_no, year, term, section_no, name, level, objective_code, method_label),
     CONSTRAINT fk_eval_section FOREIGN KEY (course_no, year, term, section_no)
