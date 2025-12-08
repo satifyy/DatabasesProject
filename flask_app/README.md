@@ -34,7 +34,7 @@ Run the provided SQL files from the project root (one level above `flask_app/`).
 cd /path/to/Project
 mysql -u cs_user -p curriculum_tracker < schema.sql
 # Optional: load demo data to see degrees/courses immediately
-mysql -u cs_user -p curriculum_tracker < sample_data.sql
+mysql -u cs_user -p curriculum_tracker < test_sample_data.sql
 ```
 
 If you prefer Workbench, open each `.sql` file there and execute it.
