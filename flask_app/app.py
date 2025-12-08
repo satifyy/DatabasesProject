@@ -804,7 +804,6 @@ def reports():
         "start_term": request.form.get("start_term") if action == "degree_report" else (semesters[0]["term"] if semesters else ""),
         "end_year": parse_int(request.form.get("end_year")) if action == "degree_report" else (semesters[-1]["year"] if semesters else None),
         "end_term": request.form.get("end_term") if action == "degree_report" else (semesters[-1]["term"] if semesters else ""),
-        "objectives": request.form.getlist("objective_codes") if action == "degree_report" else [],
     }
 
     course_filters = {
@@ -864,22 +863,11 @@ def reports():
                 "WHERE d.name=%s AND d.level=%s ORDER BY o.code",
                 (name, level),
             )
-            objective_courses: List[Dict[str, Any]] = []
-            if degree_filters["objectives"]:
-                placeholders = ",".join(["%s"] * len(degree_filters["objectives"]))
-                params: List[Any] = [name, level, *degree_filters["objectives"]]
-                objective_courses = query_all(
-                    conn,
-                    f"SELECT objective_code, course_no FROM DegreeCourseObjective WHERE name=%s AND level=%s AND objective_code IN ({placeholders}) "
-                    "ORDER BY objective_code, course_no",
-                    params,
-                )
             report_data["degree_report"] = {
                 "filters": degree_filters,
                 "courses": courses_rows,
                 "sections": sections_rows,
                 "objectives": objectives_rows,
-                "objective_courses": objective_courses,
             }
         elif action == "course_report":
             course_no = course_filters["course_no"]
@@ -963,23 +951,12 @@ def reports():
     except Exception as exc:
         flash(str(exc), "error")
 
-    # Objective options for the degree report form
-    objective_options: List[Dict[str, Any]] = []
-    if degree_filters["degree_name"] and degree_filters["degree_level"]:
-        objective_options = query_all(
-            conn,
-            "SELECT DISTINCT o.code, o.title FROM DegreeCourseObjective d JOIN Objective o ON o.code=d.objective_code "
-            "WHERE d.name=%s AND d.level=%s ORDER BY o.code",
-            (degree_filters["degree_name"], degree_filters["degree_level"]),
-        )
-
     return render_template(
         "reports.html",
         degrees=degrees,
         courses=courses,
         instructors=instructors,
         semesters=semesters,
-        objective_options=objective_options,
         report_data=report_data,
         degree_filters=degree_filters,
         course_filters=course_filters,
