@@ -46,14 +46,6 @@
             </select>
         </div>
         <div>
-            <label>Objectives (optional)</label>
-            <select name="objective_codes" multiple size="4" style="min-width:200px;">
-                {% for obj in objective_options %}
-                    <option value="{{ obj.code }}" {% if obj.code in degree_filters.objectives %}selected{% endif %}>{{ obj.code }} – {{ obj.title }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div>
             <button type="submit">Run Degree Report</button>
         </div>
     </form>
@@ -96,15 +88,6 @@
                 </tr>
             {% endfor %}
         </table>
-        {% if report_data.degree_report.objective_courses %}
-            <h3>Courses Covering Selected Objectives</h3>
-            <table>
-                <tr><th>Objective</th><th>Course</th></tr>
-                {% for row in report_data.degree_report.objective_courses %}
-                    <tr><td>{{ row.objective_code }}</td><td>{{ row.course_no }}</td></tr>
-                {% endfor %}
-            </table>
-        {% endif %}
     {% endif %}
 </div>
 
