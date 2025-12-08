@@ -26,6 +26,7 @@ NAV_LINKS = [
 ]
 COURSE_NO_PATTERN = re.compile(r"^[A-Za-z]{2,4}[0-9]{4}$")
 SECTION_NO_PATTERN = re.compile(r"^[0-9]{3}$")
+OBJECTIVE_CODE_PATTERN = re.compile(r"^OBJ[0-9]{3}$")
 
 
 def get_db():
@@ -229,6 +230,8 @@ def manage_degrees():
                 objective = (request.form.get("objective_code") or "").strip()
                 if not name or not level or not course_no or not objective:
                     raise RuntimeError("Complete the degree, course, and objective selection.")
+                if not OBJECTIVE_CODE_PATTERN.match(objective):
+                    raise RuntimeError("Objective code must be OBJ followed by exactly 3 digits (e.g., OBJ001).")
                 execute(
                     conn,
                     "INSERT INTO DegreeCourseObjective(name, level, course_no, objective_code) VALUES (%s,%s,%s,%s) "
@@ -245,6 +248,8 @@ def manage_degrees():
                 objective = (request.form.get("objective_code") or "").strip()
                 if not name or not level or not course_no or not objective:
                     raise RuntimeError("Complete the degree, course, and objective selection.")
+                if not OBJECTIVE_CODE_PATTERN.match(objective):
+                    raise RuntimeError("Objective code must be OBJ followed by exactly 3 digits (e.g., OBJ001).")
                 is_core = int(
                     query_scalar(
                         conn,
@@ -393,6 +398,8 @@ def manage_objectives():
                 description = (request.form.get("objective_description") or "").strip()
                 if not code or not title:
                     raise RuntimeError("Objective code and title are required.")
+                if not OBJECTIVE_CODE_PATTERN.match(code):
+                    raise RuntimeError("Objective code must be OBJ followed by exactly 3 digits (e.g., OBJ001).")
                 execute(
                     conn,
                     "INSERT INTO Objective(code, title, description) VALUES (%s,%s,%s) "

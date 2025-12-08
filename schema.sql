@@ -56,7 +56,8 @@ CREATE TABLE IF NOT EXISTS Objective (
     title VARCHAR(120) NOT NULL,
     description TEXT,
     PRIMARY KEY (code),
-    CONSTRAINT uq_objective_title UNIQUE (title)
+    CONSTRAINT uq_objective_title UNIQUE (title),
+    CONSTRAINT ck_objective_code CHECK (code REGEXP '^OBJ[0-9]{3}$')
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- DegreeCourse: relationship between Degree and Course, with core flag
