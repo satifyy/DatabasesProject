@@ -69,21 +69,21 @@ INSERT INTO Course (course_no, title, description) VALUES
 -- ============================================================================
 INSERT INTO Instructor (instructor_id, name) VALUES
 -- Standard faculty
-('I001', 'Dr. Sarah Johnson'),
-('I002', 'Dr. Michael Chen'),
-('I003', 'Prof. Emily Rodriguez'),
-('I004', 'Dr. James Williams'),
-('I005', 'Dr. Amanda Lee'),
-('I006', 'Prof. Robert Taylor'),
-('I007', 'Dr. Lisa Anderson'),
-('I008', 'Dr. David Martinez'),
+('001', 'Dr. Sarah Johnson'),
+('002', 'Dr. Michael Chen'),
+('003', 'Prof. Emily Rodriguez'),
+('004', 'Dr. James Williams'),
+('005', 'Dr. Amanda Lee'),
+('006', 'Prof. Robert Taylor'),
+('007', 'Dr. Lisa Anderson'),
+('008', 'Dr. David Martinez'),
 -- Edge cases: long names, special characters
-('I009', 'Dr. Christopher O''Brien-Smith'),  -- Apostrophe and hyphen
-('I010', 'Prof. María José García'),  -- Unicode characters
-('INST999', 'Dr. Alexander Maximilian Winchester III'),  -- Long name
+('009', 'Dr. Christopher O''Brien-Smith'),  -- Apostrophe and hyphen
+('010', 'Prof. María José García'),  -- Unicode characters
+('999', 'Dr. Alexander Maximilian Winchester III'),  -- Long name
 -- Adjunct/visiting faculty
-('ADJ001', 'Dr. John Visiting'),
-('ADJ002', 'Ms. Industry Expert');
+('100', 'Dr. John Visiting'),
+('200', 'Ms. Industry Expert');
 
 -- ============================================================================
 -- SEMESTER: Test all 3 terms, multiple years, chronological coverage
@@ -116,43 +116,43 @@ INSERT INTO Semester (year, term) VALUES
 -- ============================================================================
 INSERT INTO Section (course_no, year, term, section_no, instructor_id, enrolled_count) VALUES
 -- CS5330/7330 sections (multi-year, multi-instructor)
-('CS5330', 2023, 'Fall', '001', 'I001', 35),
-('CS5330', 2023, 'Fall', '002', 'I002', 32),
-('CS7330', 2023, 'Fall', '001', 'I001', 18),
-('CS5330', 2024, 'Spring', '001', 'I003', 40),
-('CS7330', 2024, 'Spring', '001', 'I002', 15),
-('CS5330', 2024, 'Fall', '001', 'I001', 38),
-('CS7330', 2024, 'Fall', '001', 'I003', 20),
+('CS5330', 2023, 'Fall', '001', '001', 35),
+('CS5330', 2023, 'Fall', '002', '002', 32),
+('CS7330', 2023, 'Fall', '001', '001', 18),
+('CS5330', 2024, 'Spring', '001', '003', 40),
+('CS7330', 2024, 'Spring', '001', '002', 15),
+('CS5330', 2024, 'Fall', '001', '001', 38),
+('CS7330', 2024, 'Fall', '001', '003', 20),
 -- Lower-level courses (high enrollment)
-('CS1111', 2023, 'Fall', '001', 'I004', 120),
-('CS1111', 2023, 'Fall', '002', 'I005', 115),
-('CS1111', 2024, 'Spring', '001', 'I004', 125),
-('CS2222', 2023, 'Fall', '001', 'I005', 80),
-('CS2222', 2024, 'Spring', '001', 'I006', 75),
-('CS3333', 2023, 'Fall', '001', 'I007', 60),
-('CS3333', 2024, 'Spring', '001', 'I007', 65),
+('CS1111', 2023, 'Fall', '001', '004', 120),
+('CS1111', 2023, 'Fall', '002', '005', 115),
+('CS1111', 2024, 'Spring', '001', '004', 125),
+('CS2222', 2023, 'Fall', '001', '005', 80),
+('CS2222', 2024, 'Spring', '001', '006', 75),
+('CS3333', 2023, 'Fall', '001', '007', 60),
+('CS3333', 2024, 'Spring', '001', '007', 65),
 -- Upper-level electives (varied enrollment)
-('CS4444', 2023, 'Fall', '001', 'I008', 45),
-('SEC4100', 2023, 'Fall', '001', 'I003', 28),
-('SEC4200', 2024, 'Spring', '001', 'I003', 22),
-('DS3100', 2023, 'Fall', '001', 'I002', 35),
-('DS3200', 2024, 'Spring', '001', 'I002', 30),
+('CS4444', 2023, 'Fall', '001', '008', 45),
+('SEC4100', 2023, 'Fall', '001', '003', 28),
+('SEC4200', 2024, 'Spring', '001', '003', 22),
+('DS3100', 2023, 'Fall', '001', '002', 35),
+('DS3200', 2024, 'Spring', '001', '002', 30),
 -- Edge cases: section numbers at boundaries
-('MATH2410', 2023, 'Fall', '001', 'I009', 90),
-('MATH2410', 2023, 'Fall', '002', 'I009', 85),
-('STAT3000', 2024, 'Spring', '001', 'I010', 70),
+('MATH2410', 2023, 'Fall', '001', '009', 90),
+('MATH2410', 2023, 'Fall', '002', '009', 85),
+('STAT3000', 2024, 'Spring', '001', '010', 70),
 -- Summer offerings (typically smaller)
-('CS5330', 2024, 'Summer', '001', 'ADJ001', 25),
-('WEB2100', 2024, 'Summer', '001', 'ADJ002', 18),
+('CS5330', 2024, 'Summer', '001', '100', 25),
+('WEB2100', 2024, 'Summer', '001', '200', 18),
 -- Edge case: zero enrollment (cancelled but not deleted)
-('DB4200', 2024, 'Fall', '001', 'I001', 0),
+('DB4200', 2024, 'Fall', '001', '001', 0),
 -- Edge case: maximum section numbers
-('CS1111', 2024, 'Fall', '999', 'I004', 1),  -- Tests 3-digit REGEXP
+('CS1111', 2024, 'Fall', '999', '004', 1),  -- Tests 3-digit REGEXP
 -- Multiple sections same semester
-('WEB2200', 2024, 'Spring', '001', 'I008', 30),
-('WEB2200', 2024, 'Spring', '002', 'I008', 28),
-('DB4100', 2024, 'Fall', '001', 'I002', 25),
-('AB1234', 2023, 'Fall', '001', 'I006', 15);
+('WEB2200', 2024, 'Spring', '001', '008', 30),
+('WEB2200', 2024, 'Spring', '002', '008', 28),
+('DB4100', 2024, 'Fall', '001', '002', 25),
+('AB1234', 2023, 'Fall', '001', '006', 15);
 
 -- ============================================================================
 -- OBJECTIVE: Test UNIQUE title constraint, VARCHAR limits

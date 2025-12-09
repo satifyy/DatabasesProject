@@ -34,4 +34,5 @@ def create_connection() -> pymysql.connections.Connection:
         charset="utf8mb4",
         cursorclass=DictCursor,
         autocommit=True,
+        init_command="SET sql_mode='STRICT_TRANS_TABLES'",
     )

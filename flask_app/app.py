@@ -28,6 +28,7 @@ NAV_LINKS = [
 COURSE_NO_PATTERN = re.compile(r"^[A-Za-z]{2,4}[0-9]{4}$")
 SECTION_NO_PATTERN = re.compile(r"^[0-9]{3}$")
 OBJECTIVE_CODE_PATTERN = re.compile(r"^OBJ[0-9]{3}$")
+INSTRUCTOR_ID_PATTERN = re.compile(r"^[0-9]{3}$")
 
 
 def get_db():
@@ -381,6 +382,8 @@ def manage_instructors():
                 name = (request.form.get("instructor_name") or "").strip()
                 if not instructor_id or not name:
                     raise RuntimeError("Instructor ID and name are required.")
+                if not INSTRUCTOR_ID_PATTERN.match(instructor_id):
+                    raise RuntimeError("Instructor ID must be exactly 3 digits (e.g., 001, 123).")
                 execute(
                     conn,
                     "INSERT INTO Instructor(instructor_id, name) VALUES (%s,%s) "
