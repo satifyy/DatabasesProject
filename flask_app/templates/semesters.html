@@ -51,7 +51,7 @@
     <div class="flex">
         <div>
             <h3>Create / Update Section</h3>
-            <form method="post">
+            <form method="post" onsubmit="return confirmSectionUpdate(this);">
                 <input type="hidden" name="action" value="save_section">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <label>Course
@@ -124,4 +124,31 @@
         </div>
     </div>
 </div>
+<script>
+const existingSections = {
+    {% for row in sections %}
+    {{ (row.course_no ~ "|" ~ row.year ~ "|" ~ row.term ~ "|" ~ row.section_no)|tojson }}: {
+        instructor: {{ row.instructor_name|tojson }},
+        enrolled: {{ row.enrolled_count|default(0) }}
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+};
+
+function confirmSectionUpdate(form) {
+    const course = form.section_course.value;
+    const year = (form.section_year.value || "").trim();
+    const term = form.section_term.value;
+    const sectionNo = (form.section_no.value || "").trim();
+    const key = `${course}|${year}|${term}|${sectionNo}`;
+    if (existingSections[key]) {
+        const current = existingSections[key];
+        return confirm(
+            `Section ${sectionNo} for ${course} ${term} ${year} exists.\n` +
+            `Instructor: ${current.instructor}\nEnrolled: ${current.enrolled}\n\n` +
+            `Save changes?`
+        );
+    }
+    return true;
+}
+</script>
 {% endblock %}

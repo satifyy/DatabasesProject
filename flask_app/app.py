@@ -788,23 +788,14 @@ def evaluations():
             "JOIN Section s ON s.course_no=dc.course_no "
             "JOIN Course c ON c.course_no=s.course_no "
             "JOIN Instructor i ON i.instructor_id=s.instructor_id "
-            "JOIN DegreeCourseObjective dco ON dco.name=dc.name AND dco.level=dc.level AND dco.course_no=dc.course_no "
-            "JOIN Objective o ON o.code=dco.objective_code "
+            "LEFT JOIN DegreeCourseObjective dco ON dco.name=dc.name AND dco.level=dc.level AND dco.course_no=dc.course_no "
+            "LEFT JOIN Objective o ON o.code=dco.objective_code "
             "LEFT JOIN Evaluation e ON e.course_no=s.course_no AND e.year=s.year AND e.term=s.term AND e.section_no=s.section_no "
             "    AND e.name=dco.name AND e.level=dco.level AND e.objective_code=dco.objective_code "
             "WHERE dc.name=%s AND dc.level=%s AND s.year=%s AND s.term=%s AND s.instructor_id=%s "
             "ORDER BY s.course_no, s.section_no, o.code",
             (filter_name, filter_level, filter_year, filter_term, filter_instructor),
         )
-        for row in section_rows:
-            row["status"] = evaluation_status_label(row)
-            row["other_degrees"] = query_all(
-                conn,
-                "SELECT DISTINCT name, level FROM DegreeCourseObjective "
-                "WHERE course_no=%s AND objective_code=%s AND NOT (name=%s AND level=%s) "
-                "ORDER BY name, level",
-                (row["course_no"], row["objective_code"], filter_name, filter_level),
-            )
         section_map: Dict[Tuple[str, str, int, str], Dict[str, Any]] = {}
         for row in section_rows:
             key = (row["course_no"], row["section_no"], row["year"], row["term"])
@@ -819,7 +810,19 @@ def evaluations():
                     "instructor_name": row["instructor_name"],
                     "enrolled_count": row["enrolled_count"],
                     "rows": [],
+                    "no_objectives": False,
                 },
+            )
+            if not row["objective_code"]:
+                block["no_objectives"] = True
+                continue
+            row["status"] = evaluation_status_label(row)
+            row["other_degrees"] = query_all(
+                conn,
+                "SELECT DISTINCT name, level FROM DegreeCourseObjective "
+                "WHERE course_no=%s AND objective_code=%s AND NOT (name=%s AND level=%s) "
+                "ORDER BY name, level",
+                (row["course_no"], row["objective_code"], filter_name, filter_level),
             )
             block["rows"].append(row)
         sections_grouped = []

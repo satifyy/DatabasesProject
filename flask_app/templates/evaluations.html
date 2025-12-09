@@ -54,116 +54,124 @@
             <h3>{{ section.course_no }} – {{ section.title }} (Section {{ section.section_no }})</h3>
             <p class="summary">
                 {{ section.term }} {{ section.year }} · {{ section.instructor_name }} · Enrollment {{ section.enrolled_count }}<br>
-                {{ section.eval_obj }} / {{ section.total_obj }} objectives evaluated ({{ '%.0f'|format(section.percent) }}%)
-                {% if section.missing %}
-                    – missing: {% for obj in section.missing %}<span class="tag">{{ obj.code }}</span>{% endfor %}
+                {% if section.total_obj > 0 %}
+                    {{ section.eval_obj }} / {{ section.total_obj }} objectives evaluated ({{ '%.0f'|format(section.percent) }}%)
+                    {% if section.missing %}
+                        – missing: {% for obj in section.missing %}<span class="tag">{{ obj.code }}</span>{% endfor %}
+                    {% else %}
+                        – all objectives evaluated
+                    {% endif %}
                 {% else %}
-                    – all objectives evaluated
+                    No objectives linked to this course for the selected degree yet.
                 {% endif %}
             </p>
-            <table>
-                <tr>
-                    <th>Objective</th>
-                    <th>Evaluation Entry</th>
-                    <th>Copy / Other Degrees</th>
-                    <th>Status</th>
-                </tr>
-                {% for row in section.rows %}
+            {% if section.rows %}
+                <table>
                     <tr>
-                        <td>{{ row.objective_code }} – {{ row.objective_title }}</td>
-                        <td>
-                            <form method="post" class="flex" style="gap:0.4rem; align-items:flex-end;">
-                                <input type="hidden" name="action" value="save_evaluation">
-                                <input type="hidden" name="degree_name" value="{{ filter_state.degree_name }}">
-                                <input type="hidden" name="degree_level" value="{{ filter_state.degree_level }}">
-                                <input type="hidden" name="course_no" value="{{ section.course_no }}">
-                                <input type="hidden" name="section_no" value="{{ section.section_no }}">
-                                <input type="hidden" name="year" value="{{ section.year }}">
-                                <input type="hidden" name="term" value="{{ section.term }}">
-                                <input type="hidden" name="objective_code" value="{{ row.objective_code }}">
-                                <input type="hidden" name="filter_degree_name" value="{{ filter_state.degree_name }}">
-                                <input type="hidden" name="filter_degree_level" value="{{ filter_state.degree_level }}">
-                                <input type="hidden" name="filter_year" value="{{ filter_state.year }}">
-                                <input type="hidden" name="filter_term" value="{{ filter_state.term }}">
-                                <input type="hidden" name="filter_instructor" value="{{ filter_state.instructor_id }}">
-                                <input type="hidden" name="original_method" value="{{ row.method_label or '' }}">
-                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <div>
-                                    <label style="font-size:0.8rem;">Method</label>
-                                    <input type="text" name="method_label" value="{{ row.method_label or '' }}" placeholder="Method" style="width:150px;" maxlength="40" list="method-options" required>
-                                </div>
-                                <div>
-                                    <label style="font-size:0.8rem;">A</label>
-                                    <input type="number" name="a_count" value="{{ row.a_count if row.a_count is not none else '' }}" min="0" placeholder="0" style="width:60px;" required>
-                                </div>
-                                <div>
-                                    <label style="font-size:0.8rem;">B</label>
-                                    <input type="number" name="b_count" value="{{ row.b_count if row.b_count is not none else '' }}" min="0" placeholder="0" style="width:60px;" required>
-                                </div>
-                                <div>
-                                    <label style="font-size:0.8rem;">C</label>
-                                    <input type="number" name="c_count" value="{{ row.c_count if row.c_count is not none else '' }}" min="0" placeholder="0" style="width:60px;" required>
-                                </div>
-                                <div>
-                                    <label style="font-size:0.8rem;">F</label>
-                                    <input type="number" name="f_count" value="{{ row.f_count if row.f_count is not none else '' }}" min="0" placeholder="0" style="width:60px;" required>
-                                </div>
-                                <div style="flex:1 1 200px;">
-                                    <label style="font-size:0.8rem;">Improvement</label>
-                                    <textarea name="improvement_text" placeholder="Improvements" style="width:100%; min-height:40px;">{{ row.improvement_text or '' }}</textarea>
-                                </div>
-                                <button type="submit">Save</button>
-                            </form>
-                        </td>
-                        <td>
-                            {% if row.other_degrees %}
-                                <div class="summary">
-                                    Also offered in:
-                                    {% for deg in row.other_degrees %}
-                                        <span class="tag">{{ deg.name }} ({{ deg.level }})</span>
-                                    {% endfor %}
-                                </div>
-                                {% if row.status == 'No Evaluation' %}
-                                    <div class="summary">Enter an evaluation before copying.</div>
-                                {% else %}
-                                    <form method="post" class="flex" style="gap:0.3rem; align-items:flex-end; margin-top:0.5rem;">
-                                        <input type="hidden" name="action" value="copy_evaluation">
-                                        <input type="hidden" name="degree_name" value="{{ filter_state.degree_name }}">
-                                        <input type="hidden" name="degree_level" value="{{ filter_state.degree_level }}">
-                                        <input type="hidden" name="course_no" value="{{ section.course_no }}">
-                                        <input type="hidden" name="section_no" value="{{ section.section_no }}">
-                                        <input type="hidden" name="year" value="{{ section.year }}">
-                                        <input type="hidden" name="term" value="{{ section.term }}">
-                                        <input type="hidden" name="objective_code" value="{{ row.objective_code }}">
-                                        <input type="hidden" name="method_label" value="{{ row.method_label }}">
-                                        <input type="hidden" name="a_count" value="{{ row.a_count }}">
-                                        <input type="hidden" name="b_count" value="{{ row.b_count }}">
-                                        <input type="hidden" name="c_count" value="{{ row.c_count }}">
-                                        <input type="hidden" name="f_count" value="{{ row.f_count }}">
-                                        <input type="hidden" name="improvement_text" value="{{ row.improvement_text or '' }}">
-                                        <input type="hidden" name="filter_degree_name" value="{{ filter_state.degree_name }}">
-                                        <input type="hidden" name="filter_degree_level" value="{{ filter_state.degree_level }}">
-                                        <input type="hidden" name="filter_year" value="{{ filter_state.year }}">
-                                        <input type="hidden" name="filter_term" value="{{ filter_state.term }}">
-                                        <input type="hidden" name="filter_instructor" value="{{ filter_state.instructor_id }}">
-                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                        <label style="font-size:0.8rem;">Copy to</label>
-                                        <select name="target_degree">
-                                            {% for deg in row.other_degrees %}
-                                                <option value="{{ deg.name }}|{{ deg.level }}">{{ deg.name }} ({{ deg.level }})</option>
-                                            {% endfor %}
-                                        </select>
-                                        <button type="submit">Copy</button>
-                                    </form>
-                                {% endif %}
-                            {% else %}
-                                <div class="summary">No other degrees share this objective.</div>
-                            {% endif %}
-                        </td>
-                        <td class="{% if row.status == 'Complete' %}status-complete{% elif row.status == 'No Evaluation' %}status-none{% else %}status-partial{% endif %}">{{ row.status }}</td>
+                        <th>Objective</th>
+                        <th>Evaluation Entry</th>
+                        <th>Copy / Other Degrees</th>
+                        <th>Status</th>
                     </tr>
-                {% endfor %}
-            </table>
+                    {% for row in section.rows %}
+                        <tr>
+                            <td>{{ row.objective_code }} – {{ row.objective_title }}</td>
+                            <td>
+                                <form method="post" class="flex" style="gap:0.4rem; align-items:flex-end;">
+                                    <input type="hidden" name="action" value="save_evaluation">
+                                    <input type="hidden" name="degree_name" value="{{ filter_state.degree_name }}">
+                                    <input type="hidden" name="degree_level" value="{{ filter_state.degree_level }}">
+                                    <input type="hidden" name="course_no" value="{{ section.course_no }}">
+                                    <input type="hidden" name="section_no" value="{{ section.section_no }}">
+                                    <input type="hidden" name="year" value="{{ section.year }}">
+                                    <input type="hidden" name="term" value="{{ section.term }}">
+                                    <input type="hidden" name="objective_code" value="{{ row.objective_code }}">
+                                    <input type="hidden" name="filter_degree_name" value="{{ filter_state.degree_name }}">
+                                    <input type="hidden" name="filter_degree_level" value="{{ filter_state.degree_level }}">
+                                    <input type="hidden" name="filter_year" value="{{ filter_state.year }}">
+                                    <input type="hidden" name="filter_term" value="{{ filter_state.term }}">
+                                    <input type="hidden" name="filter_instructor" value="{{ filter_state.instructor_id }}">
+                                    <input type="hidden" name="original_method" value="{{ row.method_label or '' }}">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <div>
+                                        <label style="font-size:0.8rem;">Method</label>
+                                        <input type="text" name="method_label" value="{{ row.method_label or '' }}" placeholder="Method" style="width:150px;" maxlength="40" list="method-options" required>
+                                    </div>
+                                    <div>
+                                        <label style="font-size:0.8rem;">A</label>
+                                        <input type="number" name="a_count" value="{{ row.a_count if row.a_count is not none else '' }}" min="0" placeholder="0" style="width:60px;" required>
+                                    </div>
+                                    <div>
+                                        <label style="font-size:0.8rem;">B</label>
+                                        <input type="number" name="b_count" value="{{ row.b_count if row.b_count is not none else '' }}" min="0" placeholder="0" style="width:60px;" required>
+                                    </div>
+                                    <div>
+                                        <label style="font-size:0.8rem;">C</label>
+                                        <input type="number" name="c_count" value="{{ row.c_count if row.c_count is not none else '' }}" min="0" placeholder="0" style="width:60px;" required>
+                                    </div>
+                                    <div>
+                                        <label style="font-size:0.8rem;">F</label>
+                                        <input type="number" name="f_count" value="{{ row.f_count if row.f_count is not none else '' }}" min="0" placeholder="0" style="width:60px;" required>
+                                    </div>
+                                    <div style="flex:1 1 200px;">
+                                        <label style="font-size:0.8rem;">Improvement</label>
+                                        <textarea name="improvement_text" placeholder="Improvements" style="width:100%; min-height:40px;">{{ row.improvement_text or '' }}</textarea>
+                                    </div>
+                                    <button type="submit">Save</button>
+                                </form>
+                            </td>
+                            <td>
+                                {% if row.other_degrees %}
+                                    <div class="summary">
+                                        Also offered in:
+                                        {% for deg in row.other_degrees %}
+                                            <span class="tag">{{ deg.name }} ({{ deg.level }})</span>
+                                        {% endfor %}
+                                    </div>
+                                    {% if row.status == 'No Evaluation' %}
+                                        <div class="summary">Enter an evaluation before copying.</div>
+                                    {% else %}
+                                        <form method="post" class="flex" style="gap:0.3rem; align-items:flex-end; margin-top:0.5rem;">
+                                            <input type="hidden" name="action" value="copy_evaluation">
+                                            <input type="hidden" name="degree_name" value="{{ filter_state.degree_name }}">
+                                            <input type="hidden" name="degree_level" value="{{ filter_state.degree_level }}">
+                                            <input type="hidden" name="course_no" value="{{ section.course_no }}">
+                                            <input type="hidden" name="section_no" value="{{ section.section_no }}">
+                                            <input type="hidden" name="year" value="{{ section.year }}">
+                                            <input type="hidden" name="term" value="{{ section.term }}">
+                                            <input type="hidden" name="objective_code" value="{{ row.objective_code }}">
+                                            <input type="hidden" name="method_label" value="{{ row.method_label }}">
+                                            <input type="hidden" name="a_count" value="{{ row.a_count }}">
+                                            <input type="hidden" name="b_count" value="{{ row.b_count }}">
+                                            <input type="hidden" name="c_count" value="{{ row.c_count }}">
+                                            <input type="hidden" name="f_count" value="{{ row.f_count }}">
+                                            <input type="hidden" name="improvement_text" value="{{ row.improvement_text or '' }}">
+                                            <input type="hidden" name="filter_degree_name" value="{{ filter_state.degree_name }}">
+                                            <input type="hidden" name="filter_degree_level" value="{{ filter_state.degree_level }}">
+                                            <input type="hidden" name="filter_year" value="{{ filter_state.year }}">
+                                            <input type="hidden" name="filter_term" value="{{ filter_state.term }}">
+                                            <input type="hidden" name="filter_instructor" value="{{ filter_state.instructor_id }}">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <label style="font-size:0.8rem;">Copy to</label>
+                                            <select name="target_degree">
+                                                {% for deg in row.other_degrees %}
+                                                    <option value="{{ deg.name }}|{{ deg.level }}">{{ deg.name }} ({{ deg.level }})</option>
+                                                {% endfor %}
+                                            </select>
+                                            <button type="submit">Copy</button>
+                                        </form>
+                                    {% endif %}
+                                {% else %}
+                                    <div class="summary">No other degrees share this objective.</div>
+                                {% endif %}
+                            </td>
+                            <td class="{% if row.status == 'Complete' %}status-complete{% elif row.status == 'No Evaluation' %}status-none{% else %}status-partial{% endif %}">{{ row.status }}</td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            {% else %}
+                <p class="summary">This course isn’t linked to any objectives for the selected degree yet.</p>
+            {% endif %}
         </div>
     {% endfor %}
 {% else %}
