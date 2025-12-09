@@ -1,10 +1,23 @@
 {% extends "base.html" %}
-{% block title %}Reports · Curriculum Assessment{% endblock %}
+{% block title %}Reports{% endblock %}
 {% block content %}
 <div class="card">
-    <h2>Degree Queries</h2>
+    <h2>Reports Menu</h2>
+    <div class="flex" style="gap:1rem; flex-wrap:wrap;">
+        <a href="{{ url_for('reports', view='degree') }}" class="button-link">Degree Queries</a>
+        <a href="{{ url_for('reports', view='course') }}" class="button-link">Course Sections by Semester Range</a>
+        <a href="{{ url_for('reports', view='instructor') }}" class="button-link">Instructor History</a>
+        <a href="{{ url_for('reports', view='evaluation') }}" class="button-link">Evaluation Status by Semester</a>
+        <a href="{{ url_for('reports', view='nonf') }}" class="button-link">Sections Meeting Non-F Threshold</a>
+    </div>
+</div>
+
+{% if selected_report == 'degree' %}
+<div class="card">
+    <h2 id="degree-queries">Degree Queries</h2>
     <form method="post" class="flex" style="align-items:flex-end;">
         <input type="hidden" name="action" value="degree_report">
+        <input type="hidden" name="view" value="degree">
         <div>
             <label>Degree</label>
             <select name="degree_name">
@@ -90,11 +103,13 @@
         </table>
     {% endif %}
 </div>
+{% elif selected_report == 'course' %}
 
 <div class="card">
-    <h2>Course Sections by Semester Range</h2>
+    <h2 id="course-sections">Course Sections by Semester Range</h2>
     <form method="post" class="flex" style="align-items:flex-end;">
         <input type="hidden" name="action" value="course_report">
+        <input type="hidden" name="view" value="course">
         <div>
             <label>Course</label>
             <select name="course_no">
@@ -145,11 +160,13 @@
         </table>
     {% endif %}
 </div>
+{% elif selected_report == 'instructor' %}
 
 <div class="card">
-    <h2>Instructor History</h2>
+    <h2 id="instructor-history">Instructor History</h2>
     <form method="post" class="flex" style="align-items:flex-end;">
         <input type="hidden" name="action" value="instructor_report">
+        <input type="hidden" name="view" value="instructor">
         <div>
             <label>Instructor</label>
             <select name="report_instructor">
@@ -201,11 +218,13 @@
         </table>
     {% endif %}
 </div>
+{% elif selected_report == 'evaluation' %}
 
 <div class="card">
-    <h2>Evaluation Status by Semester</h2>
+    <h2 id="evaluation-status">Evaluation Status by Semester</h2>
     <form method="post" class="flex" style="align-items:flex-end;">
         <input type="hidden" name="action" value="evaluation_status">
+        <input type="hidden" name="view" value="evaluation">
         <div>
             <label>Year</label>
             <input type="number" name="status_year" value="{{ eval_status_filters.year }}" required>
@@ -240,11 +259,13 @@
         </table>
     {% endif %}
 </div>
+{% elif selected_report == 'nonf' %}
 
 <div class="card">
-    <h2>Sections Meeting Non-F Threshold</h2>
+    <h2 id="nonf-threshold">Sections Meeting Non-F Threshold</h2>
     <form method="post" class="flex" style="align-items:flex-end;">
         <input type="hidden" name="action" value="nonf_report">
+        <input type="hidden" name="view" value="nonf">
         <div>
             <label>Year</label>
             <input type="number" name="nonf_year" value="{{ nonf_filters.year }}" required>
@@ -284,4 +305,5 @@
         </table>
     {% endif %}
 </div>
+{% endif %}
 {% endblock %}

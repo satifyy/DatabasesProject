@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Manage Degrees · Curriculum Assessment{% endblock %}
+{% block title %}Manage Degrees{% endblock %}
 {% block content %}
 <div class="card">
     <h2>Degrees</h2>
@@ -128,7 +128,7 @@
 </div>
 
 <div class="card">
-    <h2>Degree → Course Objectives</h2>
+    <h2>Course Objectives by Degree</h2>
     {% if selected_degree %}
         <form method="get" class="flex" style="align-items:flex-end;">
             <input type="hidden" name="degree" value="{{ degree_key }}">

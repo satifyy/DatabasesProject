@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>{% block title %}Curriculum Assessment{% endblock %}</title>
+    <title>{% block title %}Portal{% endblock %}</title>
     <style>
         :root {
             --primary: #0d47a1;
@@ -53,42 +53,64 @@
             letter-spacing: -0.5px;
         }
         
+        .layout {
+            display: grid;
+            grid-template-columns: 260px minmax(0, 1fr);
+            gap: 1.5rem;
+            padding: 1.25rem 1.5rem 2rem 0;
+            max-width: 100%;
+            margin: 0;
+        }
+
+        .sidebar {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 1.25rem;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-light);
+            position: sticky;
+            top: 1.25rem;
+            align-self: start;
+            margin-left: 0;
+        }
+
         nav { 
             display: flex; 
-            flex-wrap: wrap; 
+            flex-direction: column;
             gap: 0.75rem; 
-            margin-top: 1rem; 
+            margin-top: 0.75rem; 
         }
         
         nav a { 
-            color: #fff; 
+            color: var(--primary); 
             text-decoration: none; 
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
-            border: 1px solid rgba(255,255,255,0.3);
+            padding: 0.65rem 0.85rem;
+            border-radius: 10px;
+            border: 1px solid var(--border);
             font-size: 0.95rem;
-            font-weight: 500;
+            font-weight: 600;
             transition: var(--transition);
-            background: rgba(255,255,255,0.1);
+            background: var(--bg);
         }
         
         nav a:hover {
-            background: rgba(255,255,255,0.2);
-            border-color: rgba(255,255,255,0.5);
-            transform: translateY(-1px);
+            background: #e3f2fd;
+            border-color: var(--accent);
+            color: var(--accent);
+            transform: translateX(2px);
+            box-shadow: var(--shadow-sm);
         }
         
         nav a.active { 
-            background: #fff; 
-            color: var(--primary);
-            border-color: #fff;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            background: var(--accent); 
+            color: #fff;
+            border-color: var(--accent);
+            box-shadow: var(--shadow-md);
         }
         
         main { 
-            padding: 2rem; 
-            max-width: 1280px; 
-            margin: 0 auto; 
+            padding: 0; 
+            max-width: 100%;
         }
         
         .card { 
@@ -190,6 +212,24 @@
         
         button.secondary:hover {
             background: #607d8b;
+        }
+
+        .button-link {
+            display: inline-block;
+            background: var(--accent);
+            color: #fff;
+            padding: 0.55rem 1rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
+        }
+
+        .button-link:hover {
+            background: var(--accent-hover);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
         }
         
         table { 
@@ -294,7 +334,7 @@
         }
         
         /* Responsive Design */
-        @media (max-width: 768px) {
+        @media (max-width: 900px) {
             header {
                 padding: 1rem 1.5rem;
             }
@@ -302,20 +342,17 @@
             header h1 {
                 font-size: 1.5rem;
             }
-            
-            nav {
-                gap: 0.5rem;
-            }
-            
-            nav a {
-                padding: 0.4rem 0.8rem;
-                font-size: 0.9rem;
-            }
-            
-            main {
+
+            .layout {
+                grid-template-columns: 1fr;
                 padding: 1rem;
             }
-            
+
+            .sidebar {
+                position: relative;
+                top: 0;
+            }
+
             .card {
                 padding: 1.25rem;
                 margin-bottom: 1.5rem;
@@ -337,22 +374,27 @@
 </head>
 <body>
 <header>
-    <h1>Curriculum Assessment Portal</h1>
-    <nav>
-        {% for item in nav_links %}
-            <a href="{{ url_for(item.endpoint) }}" class="{{ 'active' if request.endpoint == item.endpoint else '' }}">{{ item.label }}</a>
-        {% endfor %}
-    </nav>
+    <h1>Uni Portal</h1>
 </header>
-<main>
-    {% with messages = get_flashed_messages(with_categories=True) %}
-        {% if messages %}
-            {% for category, msg in messages %}
-                <div class="messages {{ category }}">{{ msg }}</div>
+<div class="layout">
+    <aside class="sidebar">
+        <h3 style="margin-top:0;">Navigation</h3>
+        <nav>
+            {% for item in nav_links %}
+                <a href="{{ url_for(item.endpoint) }}" class="{{ 'active' if request.endpoint == item.endpoint else '' }}">{{ item.label }}</a>
             {% endfor %}
-        {% endif %}
-    {% endwith %}
-    {% block content %}{% endblock %}
-</main>
+        </nav>
+    </aside>
+    <main>
+        {% with messages = get_flashed_messages(with_categories=True) %}
+            {% if messages %}
+                {% for category, msg in messages %}
+                    <div class="messages {{ category }}">{{ msg }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+    </main>
+</div>
 </body>
 </html>

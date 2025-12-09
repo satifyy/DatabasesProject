@@ -19,6 +19,7 @@ NAV_LINKS = [
     {"endpoint": "home", "label": "Home"},
     {"endpoint": "manage_degrees", "label": "Manage Degrees"},
     {"endpoint": "manage_courses", "label": "Manage Courses"},
+    {"endpoint": "manage_instructors", "label": "Manage Instructors"},
     {"endpoint": "manage_objectives", "label": "Manage Objectives"},
     {"endpoint": "manage_semesters", "label": "Manage Semesters & Sections"},
     {"endpoint": "evaluations", "label": "Enter/Review Evaluations"},
@@ -361,7 +362,21 @@ def manage_courses():
                 course_no = (request.form.get("course_no") or "").strip()
                 execute(conn, "DELETE FROM Course WHERE course_no=%s", (course_no,))
                 flash(f"Course {course_no} deleted.", "success")
-            elif action == "create_instructor":
+        except Exception as exc:
+            flash(str(exc), "error")
+        return redirect(url_for("manage_courses"))
+
+    courses = query_all(conn, "SELECT course_no, title, description FROM Course ORDER BY course_no")
+    return render_template("courses.html", courses=courses)
+
+
+@app.route("/instructors", methods=["GET", "POST"])
+def manage_instructors():
+    conn = get_db()
+    if request.method == "POST":
+        action = request.form.get("action")
+        try:
+            if action == "create_instructor":
                 instructor_id = (request.form.get("instructor_id") or "").strip()
                 name = (request.form.get("instructor_name") or "").strip()
                 if not instructor_id or not name:
@@ -378,12 +393,15 @@ def manage_courses():
                 execute(conn, "DELETE FROM Instructor WHERE instructor_id=%s", (instructor_id,))
                 flash(f"Instructor {instructor_id} deleted.", "success")
         except Exception as exc:
-            flash(str(exc), "error")
-        return redirect(url_for("manage_courses"))
+            msg = str(exc)
+            # Friendly guidance when the unique name constraint is hit
+            if "uq_instructor_name" in msg or "Duplicate entry" in msg:
+                msg = "An instructor with that name already exists. Add a middle initial or suffix to distinguish them."
+            flash(msg, "error")
+        return redirect(url_for("manage_instructors"))
 
-    courses = query_all(conn, "SELECT course_no, title, description FROM Course ORDER BY course_no")
     instructors = query_all(conn, "SELECT instructor_id, name FROM Instructor ORDER BY name")
-    return render_template("courses.html", courses=courses, instructors=instructors)
+    return render_template("instructors.html", instructors=instructors)
 
 
 @app.route("/objectives", methods=["GET", "POST"])
@@ -796,6 +814,7 @@ def reports():
 
     report_data: Dict[str, Any] = {}
     action = request.form.get("action") if request.method == "POST" else None
+    selected_report = (request.form.get("view") if request.method == "POST" else request.args.get("view")) or "degree"
 
     def default_semester_bounds():
         if not semesters:
@@ -960,6 +979,7 @@ def reports():
 
     return render_template(
         "reports.html",
+        selected_report=selected_report,
         degrees=degrees,
         courses=courses,
         instructors=instructors,

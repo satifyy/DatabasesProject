@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS Course (
     title VARCHAR(120) NOT NULL,
     description TEXT,
     PRIMARY KEY (course_no),
+    CONSTRAINT uq_course_title UNIQUE (title),
     CONSTRAINT ck_course_number CHECK (course_no REGEXP '^[A-Za-z]{2,4}[0-9]{4}$')
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -23,7 +24,8 @@ CREATE TABLE IF NOT EXISTS Course (
 CREATE TABLE IF NOT EXISTS Instructor (
     instructor_id VARCHAR(20) NOT NULL,
     name VARCHAR(120) NOT NULL,
-    PRIMARY KEY (instructor_id)
+    PRIMARY KEY (instructor_id),
+    CONSTRAINT uq_instructor_name UNIQUE (name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Semester: allowed year/term combinations for scheduling sections

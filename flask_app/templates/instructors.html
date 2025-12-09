@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Manage Instructors{% endblock %}
+{% block content %}
+<div class="card">
+    <h2>Instructors</h2>
+    <div class="flex">
+        <div>
+            <h3>Add Instructor</h3>
+            <form method="post">
+                <input type="hidden" name="action" value="create_instructor">
+                <label>Instructor ID
+                    <input type="text" name="instructor_id" placeholder="I001" required>
+                </label>
+                <label>Name
+                    <input type="text" name="instructor_name" placeholder="Dr. Ada Byron" required>
+                </label>
+                <button type="submit">Save Instructor</button>
+            </form>
+        </div>
+        <div>
+            <h3>Faculty Directory</h3>
+            <table>
+                <tr><th>ID</th><th>Name</th><th></th></tr>
+                {% for inst in instructors %}
+                    <tr>
+                        <td>{{ inst.instructor_id }}</td>
+                        <td>{{ inst.name }}</td>
+                        <td>
+                            <form method="post" onsubmit="return confirm('Delete this instructor?');">
+                                <input type="hidden" name="action" value="delete_instructor">
+                                <input type="hidden" name="instructor_id" value="{{ inst.instructor_id }}">
+                                <button type="submit" class="secondary">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
