@@ -18,6 +18,7 @@
     <form method="post" class="flex" style="align-items:flex-end;">
         <input type="hidden" name="action" value="degree_report">
         <input type="hidden" name="view" value="degree">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div>
             <label>Degree</label>
             <select name="degree_name">
@@ -110,6 +111,7 @@
     <form method="post" class="flex" style="align-items:flex-end;">
         <input type="hidden" name="action" value="course_report">
         <input type="hidden" name="view" value="course">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div>
             <label>Course</label>
             <select name="course_no">
@@ -167,6 +169,7 @@
     <form method="post" class="flex" style="align-items:flex-end;">
         <input type="hidden" name="action" value="instructor_report">
         <input type="hidden" name="view" value="instructor">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div>
             <label>Instructor</label>
             <select name="report_instructor">
@@ -225,6 +228,7 @@
     <form method="post" class="flex" style="align-items:flex-end;">
         <input type="hidden" name="action" value="evaluation_status">
         <input type="hidden" name="view" value="evaluation">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div>
             <label>Year</label>
             <input type="number" name="status_year" value="{{ eval_status_filters.year }}" required>
@@ -266,6 +270,7 @@
     <form method="post" class="flex" style="align-items:flex-end;">
         <input type="hidden" name="action" value="nonf_report">
         <input type="hidden" name="view" value="nonf">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div>
             <label>Year</label>
             <input type="number" name="nonf_year" value="{{ nonf_filters.year }}" required>

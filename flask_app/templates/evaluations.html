@@ -87,6 +87,7 @@
                                 <input type="hidden" name="filter_term" value="{{ filter_state.term }}">
                                 <input type="hidden" name="filter_instructor" value="{{ filter_state.instructor_id }}">
                                 <input type="hidden" name="original_method" value="{{ row.method_label or '' }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <div>
                                     <label style="font-size:0.8rem;">Method</label>
                                     <input type="text" name="method_label" value="{{ row.method_label or '' }}" placeholder="Method" style="width:150px;" maxlength="40" list="method-options" required>
@@ -145,6 +146,7 @@
                                         <input type="hidden" name="filter_year" value="{{ filter_state.year }}">
                                         <input type="hidden" name="filter_term" value="{{ filter_state.term }}">
                                         <input type="hidden" name="filter_instructor" value="{{ filter_state.instructor_id }}">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                         <label style="font-size:0.8rem;">Copy to</label>
                                         <select name="target_degree">
                                             {% for deg in row.other_degrees %}

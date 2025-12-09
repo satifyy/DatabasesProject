@@ -5,17 +5,22 @@
     <h2>Instructors</h2>
     <div class="flex">
         <div>
-            <h3>Add Instructor</h3>
-            <form method="post">
+            <h3>Add/Update Instructor</h3>
+            <form method="post" onsubmit="return confirmInstructorUpdate(this);">
                 <input type="hidden" name="action" value="create_instructor">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="confirm_update" id="instructor_confirm_update" value="0">
                 <label>Instructor ID
-                    <input type="text" name="instructor_id" placeholder="I001" required>
+                    <input type="text" name="instructor_id" id="instructor_id" placeholder="001" required pattern="[0-9]{3}" title="Must be exactly 3 digits">
                 </label>
                 <label>Name
-                    <input type="text" name="instructor_name" placeholder="Dr. Ada Byron" required>
+                    <input type="text" name="instructor_name" id="instructor_name" placeholder="Dr. Ada Byron" required>
                 </label>
                 <button type="submit">Save Instructor</button>
             </form>
+            <p class="help-text">
+                <strong>Note:</strong> If instructor ID already exists, their name will be updated.
+            </p>
         </div>
         <div>
             <h3>Faculty Directory</h3>
@@ -26,11 +31,13 @@
                         <td>{{ inst.instructor_id }}</td>
                         <td>{{ inst.name }}</td>
                         <td>
-                            <form method="post" onsubmit="return confirm('Delete this instructor?');">
+                            <form method="post" onsubmit="return confirm({{ ('Delete %s (ID: %s)?' % (inst.name, inst.instructor_id))|tojson }});" style="display:inline;">
                                 <input type="hidden" name="action" value="delete_instructor">
                                 <input type="hidden" name="instructor_id" value="{{ inst.instructor_id }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <button type="submit" class="secondary">Delete</button>
                             </form>
+                            <button onclick="fillInstructor({{ inst.instructor_id|tojson }}, {{ inst.name|tojson }})" class="secondary">Edit</button>
                         </td>
                     </tr>
                 {% endfor %}
@@ -38,4 +45,52 @@
         </div>
     </div>
 </div>
+
+<script>
+// Store existing instructors for validation
+const existingInstructors = {
+    {% for inst in instructors %}
+    {{ inst.instructor_id|tojson }}: {{ inst.name|tojson }}{% if not loop.last %},{% endif %}
+    {% endfor %}
+};
+
+function fillInstructor(id, name) {
+    document.getElementById('instructor_id').value = id;
+    document.getElementById('instructor_name').value = name;
+    document.getElementById('instructor_id').focus();
+}
+
+function confirmInstructorUpdate(form) {
+    const id = form.instructor_id.value.trim();
+    const newName = form.instructor_name.value.trim();
+    form.instructor_confirm_update.value = "0";
+    
+    // Check if ID exists
+    if (existingInstructors[id]) {
+        const currentName = existingInstructors[id];
+        if (currentName !== newName) {
+            const proceed = confirm(
+                `Instructor ID ${id} is currently assigned to:\n"${currentName}"\n\n` +
+                `Are you sure you want to update the name to:\n"${newName}"?`
+            );
+            if (proceed) {
+                form.instructor_confirm_update.value = "1";
+            }
+            return proceed;
+        }
+    }
+    return true; // New instructor or no change
+}
+</script>
+
+<style>
+.help-text {
+    font-size: 0.9em;
+    color: #666;
+    margin-top: 1em;
+    padding: 0.5em;
+    background: #f0f0f0;
+    border-radius: 4px;
+}
+</style>
 {% endblock %}

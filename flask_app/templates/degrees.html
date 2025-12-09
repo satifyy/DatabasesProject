@@ -8,6 +8,7 @@
             <h3>Create / Update Degree</h3>
             <form method="post">
                 <input type="hidden" name="action" value="create_degree">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <label>Name
                     <input type="text" name="degree_name" placeholder="Computer Science" required>
                 </label>
@@ -44,6 +45,7 @@
                                 <input type="hidden" name="action" value="delete_degree">
                                 <input type="hidden" name="degree_name" value="{{ deg.name }}">
                                 <input type="hidden" name="degree_level" value="{{ deg.level }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <button type="submit" class="secondary">Delete</button>
                             </form>
                         </td>
@@ -73,7 +75,7 @@
             <button type="submit">Change Degree</button>
         </div>
     </form>
-    {% if selected_degree %}
+            {% if selected_degree %}
         <div class="flex">
             <div>
                 <h3>Assign Course</h3>
@@ -82,6 +84,7 @@
                     <input type="hidden" name="degree_name" value="{{ selected_degree[0] }}">
                     <input type="hidden" name="degree_level" value="{{ selected_degree[1] }}">
                     <input type="hidden" name="next_degree" value="{{ degree_key }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <label>Course
                         <select name="course_no">
                             {% for course in courses %}
@@ -110,17 +113,18 @@
                             <td>{{ row.title }}</td>
                             <td>{{ 'Yes' if row.is_core else 'No' }}</td>
                             <td>
-                                <form method="post" onsubmit="return confirm('Remove this course from the degree?');">
-                                    <input type="hidden" name="action" value="remove_degree_course">
-                                    <input type="hidden" name="degree_name" value="{{ selected_degree[0] }}">
-                                    <input type="hidden" name="degree_level" value="{{ selected_degree[1] }}">
-                                    <input type="hidden" name="course_no" value="{{ row.course_no }}">
-                                    <input type="hidden" name="next_degree" value="{{ degree_key }}">
-                                    <button type="submit" class="secondary">Remove</button>
-                                </form>
-                            </td>
-                        </tr>
-                    {% endfor %}
+                        <form method="post" onsubmit="return confirm('Remove this course from the degree?');">
+                            <input type="hidden" name="action" value="remove_degree_course">
+                            <input type="hidden" name="degree_name" value="{{ selected_degree[0] }}">
+                            <input type="hidden" name="degree_level" value="{{ selected_degree[1] }}">
+                            <input type="hidden" name="course_no" value="{{ row.course_no }}">
+                            <input type="hidden" name="next_degree" value="{{ degree_key }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="secondary">Remove</button>
+                        </form>
+                    </td>
+                </tr>
+            {% endfor %}
                 </table>
             </div>
         </div>
@@ -155,6 +159,7 @@
                         <input type="hidden" name="course_no" value="{{ course_key }}">
                         <input type="hidden" name="next_degree" value="{{ degree_key }}">
                         <input type="hidden" name="next_course" value="{{ course_key }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <label>Objective
                             <select name="objective_code">
                                 {% for obj in available_objectives %}
@@ -186,6 +191,7 @@
                                         <input type="hidden" name="objective_code" value="{{ row.objective_code }}">
                                         <input type="hidden" name="next_degree" value="{{ degree_key }}">
                                         <input type="hidden" name="next_course" value="{{ course_key }}">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                         <button type="submit" class="secondary">Remove</button>
                                     </form>
                                 </td>

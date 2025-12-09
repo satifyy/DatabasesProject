@@ -6,19 +6,24 @@
     <div class="flex">
         <div>
             <h3>Create / Update Course</h3>
-            <form method="post">
+            <form method="post" onsubmit="return confirmCourseUpdate(this);">
                 <input type="hidden" name="action" value="create_course">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="confirm_update" id="course_confirm_update" value="0">
                 <label>Course Number
-                    <input type="text" name="course_no" placeholder="CS101" required>
+                    <input type="text" name="course_no" id="course_no" placeholder="CS1010" required pattern="[A-Za-z]{2,4}[0-9]{4}" title="2-4 letters followed by 4 digits">
                 </label>
                 <label>Title
-                    <input type="text" name="course_title" placeholder="Intro to Programming" required>
+                    <input type="text" name="course_title" id="course_title" placeholder="Intro to Programming" required maxlength="120">
                 </label>
                 <label>Description
-                    <textarea name="course_description" placeholder="Optional catalog description"></textarea>
+                    <textarea name="course_description" id="course_description" placeholder="Optional catalog description"></textarea>
                 </label>
                 <button type="submit">Save Course</button>
             </form>
+            <p class="help-text">
+                <strong>Note:</strong> If course number already exists, title and description will be updated.
+            </p>
         </div>
         <div>
             <h3>Catalog</h3>
@@ -29,11 +34,13 @@
                         <td>{{ course.course_no }}</td>
                         <td>{{ course.title }}</td>
                         <td>
-                            <form method="post" onsubmit="return confirm('Delete this course?');">
+                            <form method="post" onsubmit="return confirm({{ ('Delete %s: %s?' % (course.course_no, course.title))|tojson }});" style="display:inline;">
                                 <input type="hidden" name="action" value="delete_course">
                                 <input type="hidden" name="course_no" value="{{ course.course_no }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <button type="submit" class="secondary">Delete</button>
                             </form>
+                            <button onclick="fillCourse({{ course.course_no|tojson }}, {{ course.title|tojson }}, {{ (course.description or '')|tojson }})" class="secondary">Edit</button>
                         </td>
                     </tr>
                 {% endfor %}
@@ -41,4 +48,57 @@
         </div>
     </div>
 </div>
+
+<script>
+// Store existing courses for validation
+const existingCourses = {
+    {% for course in courses %}
+    {{ course.course_no|upper|tojson }}: {
+        title: {{ course.title|tojson }},
+        description: {{ (course.description or '')|tojson }}
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+};
+
+function fillCourse(courseNo, title, description) {
+    document.getElementById('course_no').value = courseNo;
+    document.getElementById('course_title').value = title;
+    document.getElementById('course_description').value = description;
+    document.getElementById('course_no').focus();
+}
+
+function confirmCourseUpdate(form) {
+    const courseNo = form.course_no.value.trim().toUpperCase();
+    const newTitle = form.course_title.value.trim();
+    form.course_no.value = courseNo;
+    form.course_confirm_update.value = "0";
+    
+    // Check if course exists
+    if (existingCourses[courseNo]) {
+        const current = existingCourses[courseNo];
+        if (current.title !== newTitle) {
+            const proceed = confirm(
+                `Course ${courseNo} is currently:\n"${current.title}"\n\n` +
+                `Are you sure you want to update the title to:\n"${newTitle}"?`
+            );
+            if (proceed) {
+                form.course_confirm_update.value = "1";
+            }
+            return proceed;
+        }
+    }
+    return true; // New course or no change
+}
+</script>
+
+<style>
+.help-text {
+    font-size: 0.9em;
+    color: #666;
+    margin-top: 1em;
+    padding: 0.5em;
+    background: #f0f0f0;
+    border-radius: 4px;
+}
+</style>
 {% endblock %}

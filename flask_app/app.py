@@ -2,9 +2,20 @@ from __future__ import annotations
 
 import os
 import re
+import secrets
 from typing import Any, Dict, List, Sequence, Tuple
 
-from flask import Flask, flash, g, redirect, render_template, request, url_for
+from flask import (
+    Flask,
+    abort,
+    flash,
+    g,
+    redirect,
+    render_template,
+    request,
+    session,
+    url_for,
+)
 
 from db import create_connection
 
@@ -115,6 +126,26 @@ def evaluation_status_label(row: Dict[str, Any]) -> str:
 
 def evaluation_complete(row: Dict[str, Any]) -> bool:
     return evaluation_status_label(row) == "Complete"
+
+
+def generate_csrf_token() -> str:
+    token = session.get("_csrf_token")
+    if not token:
+        token = secrets.token_hex(16)
+        session["_csrf_token"] = token
+    return token
+
+
+@app.before_request
+def csrf_protect() -> None:
+    if request.method == "POST":
+        token = session.get("_csrf_token")
+        form_token = request.form.get("csrf_token")
+        if not token or not form_token or token != form_token:
+            abort(400, description="CSRF token missing or invalid.")
+
+
+app.jinja_env.globals["csrf_token"] = generate_csrf_token
 
 
 @app.context_processor
@@ -348,10 +379,19 @@ def manage_courses():
                 course_no = (request.form.get("course_no") or "").strip()
                 title = (request.form.get("course_title") or "").strip()
                 description = (request.form.get("course_description") or "").strip()
+                confirm_update = request.form.get("confirm_update") == "1"
                 if not course_no or not title:
                     raise RuntimeError("Course number and title are required.")
                 if not COURSE_NO_PATTERN.match(course_no):
                     raise RuntimeError("Course number must be 2-4 letters followed by a four-digit number (e.g., CS1010).")
+                existing_course = query_one(conn, "SELECT title, description FROM Course WHERE course_no=%s", (course_no,))
+                if existing_course:
+                    existing_title = existing_course.get("title") or ""
+                    existing_desc = existing_course.get("description") or ""
+                    if (existing_title != title or (description or "") != (existing_desc or "")) and not confirm_update:
+                        raise RuntimeError(
+                            f"Course {course_no} currently has title '{existing_title}'. Confirm the update to proceed."
+                        )
                 execute(
                     conn,
                     "INSERT INTO Course(course_no, title, description) VALUES (%s,%s,%s) "
@@ -380,10 +420,18 @@ def manage_instructors():
             if action == "create_instructor":
                 instructor_id = (request.form.get("instructor_id") or "").strip()
                 name = (request.form.get("instructor_name") or "").strip()
+                confirm_update = request.form.get("confirm_update") == "1"
                 if not instructor_id or not name:
                     raise RuntimeError("Instructor ID and name are required.")
                 if not INSTRUCTOR_ID_PATTERN.match(instructor_id):
                     raise RuntimeError("Instructor ID must be exactly 3 digits (e.g., 001, 123).")
+                existing_inst = query_one(conn, "SELECT name FROM Instructor WHERE instructor_id=%s", (instructor_id,))
+                if existing_inst:
+                    current_name = existing_inst.get("name") or ""
+                    if current_name != name and not confirm_update:
+                        raise RuntimeError(
+                            f"Instructor {instructor_id} is currently '{current_name}'. Confirm the update to proceed."
+                        )
                 execute(
                     conn,
                     "INSERT INTO Instructor(instructor_id, name) VALUES (%s,%s) "

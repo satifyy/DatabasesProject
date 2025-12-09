@@ -8,6 +8,7 @@
             <h3>Add Semester</h3>
             <form method="post">
                 <input type="hidden" name="action" value="create_semester">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <label>Year
                     <input type="number" name="semester_year" placeholder="2024" required>
                 </label>
@@ -34,6 +35,7 @@
                                 <input type="hidden" name="action" value="delete_semester">
                                 <input type="hidden" name="semester_year" value="{{ sem.year }}">
                                 <input type="hidden" name="semester_term" value="{{ sem.term }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <button type="submit" class="secondary">Delete</button>
                             </form>
                         </td>
@@ -51,6 +53,7 @@
             <h3>Create / Update Section</h3>
             <form method="post">
                 <input type="hidden" name="action" value="save_section">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <label>Course
                     <select name="section_course" required>
                         {% for course in courses %}
@@ -111,6 +114,7 @@
                                 <input type="hidden" name="section_year" value="{{ row.year }}">
                                 <input type="hidden" name="section_term" value="{{ row.term }}">
                                 <input type="hidden" name="section_no" value="{{ row.section_no }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <button type="submit" class="secondary">Delete</button>
                             </form>
                         </td>
