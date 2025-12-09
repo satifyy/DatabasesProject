@@ -6,7 +6,7 @@
     <div class="flex">
         <div>
             <h3>Create / Update Objective</h3>
-            <form method="post">
+            <form method="post" onsubmit="return confirmObjectiveUpdate(this);">
                 <input type="hidden" name="action" value="create_objective">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <label>Code
@@ -44,4 +44,27 @@
         </div>
     </div>
 </div>
+<script>
+const existingObjectives = {
+    {% for obj in objectives %}
+    {{ obj.code|upper|tojson }}: {{ obj.title|tojson }}{% if not loop.last %},{% endif %}
+    {% endfor %}
+};
+
+function confirmObjectiveUpdate(form) {
+    const code = (form.objective_code.value || "").trim().toUpperCase();
+    const newTitle = (form.objective_title.value || "").trim();
+    form.objective_code.value = code;
+    if (existingObjectives[code]) {
+        const currentTitle = existingObjectives[code];
+        if (currentTitle !== newTitle) {
+            return confirm(
+                `Objective ${code} is currently:\n"${currentTitle}"\n\n` +
+                `Are you sure you want to update the title to:\n"${newTitle}"?`
+            );
+        }
+    }
+    return true;
+}
+</script>
 {% endblock %}

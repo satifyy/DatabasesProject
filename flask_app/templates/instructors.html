@@ -53,6 +53,11 @@ const existingInstructors = {
     {{ inst.instructor_id|tojson }}: {{ inst.name|tojson }}{% if not loop.last %},{% endif %}
     {% endfor %}
 };
+const instructorNameOwners = {
+    {% for inst in instructors %}
+    {{ inst.name|tojson }}: {{ inst.instructor_id|tojson }}{% if not loop.last %},{% endif %}
+    {% endfor %}
+};
 
 function fillInstructor(id, name) {
     document.getElementById('instructor_id').value = id;
@@ -65,6 +70,12 @@ function confirmInstructorUpdate(form) {
     const newName = form.instructor_name.value.trim();
     form.instructor_confirm_update.value = "0";
     
+    // Warn if another instructor already uses this name
+    const otherId = instructorNameOwners[newName];
+    if (otherId && otherId !== id) {
+        return confirm(`"${newName}" is already assigned to ID ${otherId}. Save anyway?`);
+    }
+
     // Check if ID exists
     if (existingInstructors[id]) {
         const currentName = existingInstructors[id];

@@ -59,6 +59,11 @@ const existingCourses = {
     }{% if not loop.last %},{% endif %}
     {% endfor %}
 };
+const courseTitleOwners = {
+    {% for course in courses %}
+    {{ course.title|tojson }}: {{ course.course_no|upper|tojson }}{% if not loop.last %},{% endif %}
+    {% endfor %}
+};
 
 function fillCourse(courseNo, title, description) {
     document.getElementById('course_no').value = courseNo;
@@ -86,6 +91,11 @@ function confirmCourseUpdate(form) {
             }
             return proceed;
         }
+    }
+    // Warn if another course already uses this title
+    const otherCourse = courseTitleOwners[newTitle];
+    if (otherCourse && otherCourse !== courseNo) {
+        return confirm(`The title "${newTitle}" is already used by course ${otherCourse}. Save anyway?`);
     }
     return true; // New course or no change
 }

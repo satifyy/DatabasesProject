@@ -198,6 +198,7 @@ def manage_degrees():
                 level = (request.form.get("degree_level") or "").strip()
                 course_no = (request.form.get("course_no") or "").strip()
                 is_core = 1 if request.form.get("is_core") else 0
+                missing_objectives = False
                 if not name or not level or not course_no:
                     raise RuntimeError("Degree and course are required.")
                 existing = query_scalar(
@@ -220,7 +221,7 @@ def manage_degrees():
                         (name, level, course_no),
                     )
                     if int(obj_count or 0) == 0:
-                        raise RuntimeError("Add at least one objective before marking the course as core.")
+                        missing_objectives = True
                 execute(
                     conn,
                     "INSERT INTO DegreeCourse(name, level, course_no, is_core) VALUES (%s,%s,%s,%s) "
@@ -230,6 +231,11 @@ def manage_degrees():
                 next_degree = f"{name}|{level}"
                 next_course = course_no
                 flash("Degree-course link saved.", "success")
+                if missing_objectives:
+                    flash(
+                        "Course is marked core but has no objectives yet. Link objectives for this course in the section below.",
+                        "warning",
+                    )
             elif action == "remove_degree_course":
                 name = (request.form.get("degree_name") or "").strip()
                 level = (request.form.get("degree_level") or "").strip()
@@ -426,6 +432,13 @@ def manage_instructors():
                 if not INSTRUCTOR_ID_PATTERN.match(instructor_id):
                     raise RuntimeError("Instructor ID must be exactly 3 digits (e.g., 001, 123).")
                 existing_inst = query_one(conn, "SELECT name FROM Instructor WHERE instructor_id=%s", (instructor_id,))
+                name_conflict = query_one(
+                    conn, "SELECT instructor_id FROM Instructor WHERE name=%s AND instructor_id<>%s", (name, instructor_id)
+                )
+                if name_conflict:
+                    raise RuntimeError(
+                        "An instructor with that name already exists. Add a middle initial or suffix to distinguish them."
+                    )
                 if existing_inst:
                     current_name = existing_inst.get("name") or ""
                     if current_name != name and not confirm_update:
