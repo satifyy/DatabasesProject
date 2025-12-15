@@ -101,5 +101,3 @@ Each form posts to its own page and immediately flashes success/error messages a
 - **Missing tables**: Re-run `schema.sql` and restart the Flask server.
 - **Permission denied when running SQL files**: Log in as the MySQL root user, rerun the GRANT statements, or adjust the account’s privileges.
 - **Port conflict on 5000**: Run `flask --app app run --debug --port 5050` and visit `http://127.0.0.1:5050`.
-
-With these steps, a junior CS student (even without database experience) can install MySQL, prepare the schema, configure the app, and begin using the portal locally.
