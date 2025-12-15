@@ -34,13 +34,13 @@
                         <td>{{ course.course_no }}</td>
                         <td>{{ course.title }}</td>
                         <td>
-                            <form method="post" onsubmit="return confirm({{ ('Delete %s: %s?' % (course.course_no, course.title))|tojson }});" style="display:inline;">
+                            <form method="post" data-delete-course data-course-no="{{ course.course_no }}" data-course-title="{{ course.title|e }}" style="display:inline;">
                                 <input type="hidden" name="action" value="delete_course">
                                 <input type="hidden" name="course_no" value="{{ course.course_no }}">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <button type="submit" class="secondary">Delete</button>
                             </form>
-                            <button onclick="fillCourse({{ course.course_no|tojson }}, {{ course.title|tojson }}, {{ (course.description or '')|tojson }})" class="secondary">Edit</button>
+                            <button type="button" data-fill-course data-course-no="{{ course.course_no }}" data-course-title="{{ course.title|e }}" data-course-description="{{ (course.description or '')|e }}" class="secondary">Edit</button>
                         </td>
                     </tr>
                 {% endfor %}
@@ -49,21 +49,24 @@
     </div>
 </div>
 
+<script id="courses-data" type="application/json">
+{{ courses|tojson }}
+</script>
 <script>
-// Store existing courses for validation
-const existingCourses = {
-    {% for course in courses %}
-    {{ course.course_no|upper|tojson }}: {
-        title: {{ course.title|tojson }},
-        description: {{ (course.description or '')|tojson }}
-    }{% if not loop.last %},{% endif %}
-    {% endfor %}
-};
-const courseTitleOwners = {
-    {% for course in courses %}
-    {{ course.title|tojson }}: {{ course.course_no|upper|tojson }}{% if not loop.last %},{% endif %}
-    {% endfor %}
-};
+// Parse rendered JSON so this block remains valid JavaScript for editors/linters
+const coursesData = JSON.parse(document.getElementById('courses-data').textContent);
+const existingCourses = Object.fromEntries(
+    coursesData.map(({ course_no, title, description }) => [
+        (course_no || "").toUpperCase(),
+        { title: title || "", description: description || "" }
+    ])
+);
+const courseTitleOwners = Object.fromEntries(
+    coursesData.map(({ course_no, title }) => [
+        title || "",
+        (course_no || "").toUpperCase()
+    ])
+);
 
 function fillCourse(courseNo, title, description) {
     document.getElementById('course_no').value = courseNo;
@@ -99,6 +102,25 @@ function confirmCourseUpdate(form) {
     }
     return true; // New course or no change
 }
+
+// Wire up edit buttons without embedding template expressions in JS
+document.querySelectorAll('[data-fill-course]').forEach(btn => {
+    btn.addEventListener('click', () => {
+        fillCourse(btn.dataset.courseNo, btn.dataset.courseTitle, btn.dataset.courseDescription);
+    });
+});
+
+// Confirm deletes without embedding template expressions in JS
+document.querySelectorAll('[data-delete-course]').forEach(form => {
+    form.addEventListener('submit', event => {
+        const title = form.dataset.courseTitle || "this course";
+        const no = form.dataset.courseNo || "";
+        const message = no ? `Delete ${no}: ${title}?` : `Delete ${title}?`;
+        if (!confirm(message)) {
+            event.preventDefault();
+        }
+    });
+});
 </script>
 
 <style>

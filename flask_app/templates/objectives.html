@@ -44,12 +44,18 @@
         </div>
     </div>
 </div>
+<script id="objectives-data" type="application/json">
+{{ objectives|tojson }}
+</script>
 <script>
-const existingObjectives = {
-    {% for obj in objectives %}
-    {{ obj.code|upper|tojson }}: {{ obj.title|tojson }}{% if not loop.last %},{% endif %}
-    {% endfor %}
-};
+// Parse rendered JSON so this block remains valid JavaScript for editors/linters
+const objectivesData = JSON.parse(document.getElementById('objectives-data').textContent);
+const existingObjectives = Object.fromEntries(
+    objectivesData.map(({ code, title }) => [
+        (code || "").toUpperCase(),
+        title || ""
+    ])
+);
 
 function confirmObjectiveUpdate(form) {
     const code = (form.objective_code.value || "").trim().toUpperCase();

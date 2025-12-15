@@ -124,15 +124,18 @@
         </div>
     </div>
 </div>
+<script id="sections-data" type="application/json">
+{{ sections|tojson }}
+</script>
 <script>
-const existingSections = {
-    {% for row in sections %}
-    {{ (row.course_no ~ "|" ~ row.year ~ "|" ~ row.term ~ "|" ~ row.section_no)|tojson }}: {
-        instructor: {{ row.instructor_name|tojson }},
-        enrolled: {{ row.enrolled_count|default(0) }}
-    }{% if not loop.last %},{% endif %}
-    {% endfor %}
-};
+// Read pre-rendered JSON to keep this block valid JavaScript for editors/linters
+const sectionsData = JSON.parse(document.getElementById('sections-data').textContent);
+const existingSections = Object.fromEntries(
+    sectionsData.map(({ course_no, year, term, section_no, instructor_name, enrolled_count }) => ([
+        `${course_no}|${year}|${term}|${section_no}`,
+        { instructor: instructor_name, enrolled: enrolled_count || 0 }
+    ]))
+);
 
 function confirmSectionUpdate(form) {
     const course = form.section_course.value;

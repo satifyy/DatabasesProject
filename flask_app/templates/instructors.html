@@ -31,13 +31,13 @@
                         <td>{{ inst.instructor_id }}</td>
                         <td>{{ inst.name }}</td>
                         <td>
-                            <form method="post" onsubmit="return confirm({{ ('Delete %s (ID: %s)?' % (inst.name, inst.instructor_id))|tojson }});" style="display:inline;">
+                            <form method="post" data-delete-instructor data-instructor-id="{{ inst.instructor_id }}" data-instructor-name="{{ inst.name|e }}" style="display:inline;">
                                 <input type="hidden" name="action" value="delete_instructor">
                                 <input type="hidden" name="instructor_id" value="{{ inst.instructor_id }}">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <button type="submit" class="secondary">Delete</button>
                             </form>
-                            <button onclick="fillInstructor({{ inst.instructor_id|tojson }}, {{ inst.name|tojson }})" class="secondary">Edit</button>
+                            <button type="button" data-fill-instructor data-instructor-id="{{ inst.instructor_id }}" data-instructor-name="{{ inst.name|e }}" class="secondary">Edit</button>
                         </td>
                     </tr>
                 {% endfor %}
@@ -46,18 +46,24 @@
     </div>
 </div>
 
+<script id="instructors-data" type="application/json">
+{{ instructors|tojson }}
+</script>
 <script>
-// Store existing instructors for validation
-const existingInstructors = {
-    {% for inst in instructors %}
-    {{ inst.instructor_id|tojson }}: {{ inst.name|tojson }}{% if not loop.last %},{% endif %}
-    {% endfor %}
-};
-const instructorNameOwners = {
-    {% for inst in instructors %}
-    {{ inst.name|tojson }}: {{ inst.instructor_id|tojson }}{% if not loop.last %},{% endif %}
-    {% endfor %}
-};
+// Parse rendered JSON so this block remains valid JavaScript for editors/linters
+const instructorsData = JSON.parse(document.getElementById('instructors-data').textContent);
+const existingInstructors = Object.fromEntries(
+    instructorsData.map(({ instructor_id, name }) => [
+        instructor_id || "",
+        name || ""
+    ])
+);
+const instructorNameOwners = Object.fromEntries(
+    instructorsData.map(({ instructor_id, name }) => [
+        name || "",
+        instructor_id || ""
+    ])
+);
 
 function fillInstructor(id, name) {
     document.getElementById('instructor_id').value = id;
@@ -92,6 +98,25 @@ function confirmInstructorUpdate(form) {
     }
     return true; // New instructor or no change
 }
+
+// Wire up edit buttons without embedding template expressions in JS
+document.querySelectorAll('[data-fill-instructor]').forEach(btn => {
+    btn.addEventListener('click', () => {
+        fillInstructor(btn.dataset.instructorId, btn.dataset.instructorName);
+    });
+});
+
+// Confirm deletes without embedding template expressions in JS
+document.querySelectorAll('[data-delete-instructor]').forEach(form => {
+    form.addEventListener('submit', event => {
+        const name = form.dataset.instructorName || "this instructor";
+        const id = form.dataset.instructorId || "";
+        const message = id ? `Delete ${name} (ID: ${id})?` : `Delete ${name}?`;
+        if (!confirm(message)) {
+            event.preventDefault();
+        }
+    });
+});
 </script>
 
 <style>
