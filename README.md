@@ -10,7 +10,11 @@
 
 ## 2. Create the Database
 
-1. Start the MySQL service (Windows Services panel, `brew services start mysql`, or `systemctl start mysql` depending on OS).
+1. Start the MySQL service 
+    - **Windows:** Press `Win + R`, type `services.msc`, press Enter. Find "MySQLxx" and start it. Or run: `net start MySQLxx`
+   - **macOS:** `brew services start mysql`
+   - **Linux:** `sudo systemctl start mysql`
+
 2. Open a terminal and launch the MySQL shell:
    ```bash
    mysql -u root -p
